@@ -74,6 +74,11 @@ const workerConfig = {
     }
   },
   plugins: [
+    new webpack.NormalModuleReplacementPlugin(/^\.\/data\.js$/, resource => {
+      if (resource.context.includes('minecraft-data')) {
+        resource.request = path.resolve(__dirname, 'viewer/lib/worker-data.js')
+      }
+    }),
     // fix "process is not defined" error:
     new webpack.ProvidePlugin({
       process: 'process/browser'
