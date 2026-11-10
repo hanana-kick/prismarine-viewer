@@ -73,6 +73,19 @@ function fixedColor (argb) {
   ]
 }
 
+function modifyDarkForestGrass (rgb) {
+  // Vanilla GrassColorModifier.DARK_FOREST:
+  // ((baseGrass & 0xFEFEFE) + 0x28340A) >> 1.
+  // minecraft-data records only 0x141A05, the additive half-offset,
+  // so interpreting it as a full grass RGB makes the ground nearly black.
+  const r = Math.round(rgb[0] * 255)
+  const g = Math.round(rgb[1] * 255)
+  const b = Math.round(rgb[2] * 255)
+  const original = (r << 16) | (g << 8) | b
+  const modified = (((original & 0xfefefe) + 0x28340a) >>> 1) & 0xffffff
+  return fixedColor(modified)
+}
+
 function generateBiomeTints (assetsDir) {
   const mc26 = minecraftData('26.3')
   const mcLegacy = minecraftData('1.16.2')
@@ -91,16 +104,22 @@ function generateBiomeTints (assetsDir) {
     const resolved = {}
     for (const { keys, color } of records.data) {
       for (const key of keys) {
-        if (color === 0 && colormaps[kind]) {
+        const needsColormap = colormaps[kind] && (
+          color === 0 ||
+          (kind === 'grass' && key === 'dark_forest' && (color & 0xffffff) === 0x141a05)
+        )
+        if (needsColormap) {
           const biome = mc26.biomesByName[key]
           if (!biome) throw new Error(`Unknown biome in 26.3 tint palette: ${key}`)
           const oldName = rainfallAliases[key] || key
           const oldBiome = mcLegacy.biomesByName[oldName]
-          // 26.3 minecraft-data has temperatures but does not expose
-          // downfall. Use the last recorded rainfall for unchanged biomes
-          // and a representative analogue for the renamed/new biomes.
+          // Newer minecraft-data exposes temperature but omits downfall.
+          // Use the preceding biome's rainfall, or its nearest analogue.
           const rainfall = oldBiome?.rainfall ?? (biome.has_precipitation ? 0.5 : 0)
-          resolved[key] = sampleColormap(colormaps[kind], biome.temperature, rainfall)
+          const vanillaColor = sampleColormap(colormaps[kind], biome.temperature, rainfall)
+          resolved[key] = kind === 'grass' && key === 'dark_forest'
+            ? modifyDarkForestGrass(vanillaColor)
+            : vanillaColor
           dynamicCount++
         } else {
           resolved[key] = fixedColor(color)

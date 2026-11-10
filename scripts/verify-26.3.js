@@ -43,6 +43,8 @@ for (const [kind, names] of Object.entries({
 // the Web Worker as literal black.
 assert.equal(mcData.tints.foliage.data.find(group => group.keys.includes('forest')).color, 0)
 assert(palette.foliage.forest[1] > 0.15, 'Forest foliage was rendered black')
+assert(palette.grass.dark_forest[1] > 0.25, 'Dark forest grass is still using a dark modifier constant as RGB')
+assert(palette.grass.dark_forest[1] < palette.grass.forest[1], 'Dark forest grass lost its darker vanilla shade')
 
 // Audit block-model references for later texture regression diagnosis.
 let missingModels = 0
