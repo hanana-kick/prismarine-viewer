@@ -1,5 +1,5 @@
 function cleanupBlockName (name) {
-  return name.replace(/^minecraft:/, '').replace(/^blocks?\\//, '')
+  return name.replace(/^minecraft:/, '').replace(/^blocks?\//, '')
 }
 
 function getModel (name, blocksModels) {
