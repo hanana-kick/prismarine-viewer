@@ -1,15 +1,17 @@
 {
   "name": "prismarine-viewer",
-  "version": "1.33.0",
-  "description": "Web based viewer",
+  "version": "1.33.0-mc26.3.0",
+  "description": "Prismarine Viewer with Minecraft Java 26.3 (protocol 777) support",
   "main": "index.js",
   "scripts": {
     "jestTest": "jest --verbose --runInBand --forceExit",
-    "test": "npm run test",
+    "test": "npm run jestTest",
     "pretest": "npm run lint",
     "lint": "standard",
-    "prepare": "node viewer/prerender.js && webpack",
-    "fix": "standard --fix"
+    "prepare": "node scripts/prepare.js",
+    "fix": "standard --fix",
+    "build": "node scripts/prepare.js --force",
+    "verify:mc26": "node scripts/verify-26.3.js"
   },
   "author": "PrismarineJS",
   "license": "MIT",
@@ -25,15 +27,16 @@
     "@tweenjs/tween.js": "^23.1.1",
     "compression": "^1.7.4",
     "express": "^4.17.1",
-    "minecraft-data": "^3.0.0",
-    "prismarine-block": "^1.7.3",
-    "prismarine-chunk": "^1.22.0",
+    "minecraft-data": "npm:@wp2508/minecraft-data@3.111.7",
+    "prismarine-block": "npm:@wp2508/prismarine-block@1.23.1",
+    "prismarine-chunk": "npm:@wp2508/prismarine-chunk@1.41.5",
     "prismarine-world": "^3.3.1",
     "socket.io": "^4.0.0",
     "socket.io-client": "^4.0.0",
     "three": "0.128.0",
     "three.meshline": "^1.3.0",
-    "vec3": "^0.1.7"
+    "vec3": "^0.1.7",
+    "prismarine-registry": "npm:@wp2508/prismarine-registry@1.12.1"
   },
   "devDependencies": {
     "assert": "^2.0.0",
@@ -54,6 +57,7 @@
     "puppeteer": "^22.8.2",
     "standard": "^17.1.0",
     "webpack": "^5.10.2",
-    "webpack-cli": "^6.0.1"
+    "webpack-cli": "^6.0.1",
+    "minecraft-jar-extractor": "^1.1.0"
   }
 }

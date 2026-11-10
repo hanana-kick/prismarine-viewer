@@ -1,0 +1,28 @@
+name: Minecraft Java 26.3 GitHub distribution
+
+on:
+  push:
+    branches: [mc-26.3]
+  workflow_dispatch:
+
+jobs:
+  build-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install canvas native prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+      - name: Install and build GitHub-distributed package
+        run: npm install
+      - name: Validate Minecraft Java 26.3
+        run: npm run verify:mc26
+      - name: Check code style
+        run: npm run lint
+      - name: Check package contents
+        run: npm pack --dry-run

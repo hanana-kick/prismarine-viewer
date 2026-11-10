@@ -1,3 +1,43 @@
+# prismarine-viewer (Minecraft Java 26.3 fork)
+
+This branch adds support for Minecraft Java **26.3 (protocol 777)** to the PrismarineJS viewer.
+
+## Install directly from GitHub with pnpm
+
+```bash
+pnpm add github:hanana-kick/prismarine-viewer#mc-26.3
+```
+
+Use `require('prismarine-viewer')` as before. No npm publishing is required.
+
+```js
+const mineflayerViewer = require('prismarine-viewer').mineflayer
+
+// bot must be connected to a Minecraft Java 26.3 server using
+// an independently 26.3-compatible Mineflayer/protocol stack.
+bot.once('spawn', () => {
+  mineflayerViewer(bot, { port: 3000, firstPerson: true })
+})
+```
+
+A GitHub install executes the package's `prepare` script if prebuilt files are absent.
+The script downloads the official Minecraft 26.3 client JAR, extracts block models
+and textures, builds the texture atlas and block-state JSON, and runs webpack.
+The first install therefore needs network access and a working `canvas` build
+environment. Subsequent installs may still build in a fresh Git dependency clone.
+For maintainers, `npm run build` forces a rebuild and `npm run verify:mc26`
+checks the generated 26.3 data and browser bundles.
+
+Dependencies for the 26.3 data, registry, block and chunk support currently use
+the pinned `@wp2508` PrismarineJS forks, since the upstream 26.3 support PRs
+are not yet merged. This fork does not modify the consumer's Mineflayer
+installation. It supplies the viewer only; network protocol/login compatibility
+remains the responsibility of the bot library.
+
+The original project documentation follows.
+
+---
+
 # prismarine-viewer
 
 Web based viewer for servers and bots

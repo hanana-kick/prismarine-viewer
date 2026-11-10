@@ -1,44 +1,62 @@
+'use strict'
+
 const path = require('path')
 const { makeTextureAtlas } = require('./lib/atlas')
 const { prepareBlocksStates } = require('./lib/modelsBuilder')
 const mcAssets = require('minecraft-assets')
 const Chunks = require('prismarine-chunk')
 const fs = require('fs-extra')
+const { supportedVersions } = require('./lib/version')
 
-const supportedVersions = require('./lib/version').supportedVersions
-
-// World bounds come from prismarine-chunk, which is a build-time dependency here.
-// Emitting them lets the browser fetch the answer instead of bundling
-// prismarine-chunk (and all of minecraft-data behind it) into index.js.
 const publicPath = path.resolve(__dirname, '../public')
-fs.mkdirSync(publicPath, { recursive: true })
-fs.writeFileSync(path.resolve(publicPath, 'worldBounds.json'), JSON.stringify(
-  Object.fromEntries(supportedVersions.map(version => {
+const texturesPath = path.join(publicPath, 'textures')
+const blockStatesPath = path.join(publicPath, 'blocksStates')
+const force = process.env.PRISMARINE_VIEWER_FORCE_BUILD === '1'
+
+function assetsFor (version) {
+  if (version !== '26.3') {
+    const assets = mcAssets(version)
+    if (!assets) throw new Error(`Missing minecraft-assets data for ${version}`)
+    return assets
+  }
+
+  const directory = process.env.PRISMARINE_MC26_ASSETS_DIR
+  if (!directory) throw new Error('26.3 assets not extracted: run node scripts/prepare.js')
+
+  const blocksStates = fs.readJSONSync(path.join(directory, 'blocks_states.json'))
+  const blocksModels = fs.readJSONSync(path.join(directory, 'blocks_models.json'))
+  return { directory, blocksStates, blocksModels }
+}
+
+function main () {
+  fs.ensureDirSync(publicPath)
+  fs.ensureDirSync(texturesPath)
+  fs.ensureDirSync(blockStatesPath)
+
+  // The worker must receive the correct world bounds, including -64..319 in 26.3.
+  const bounds = Object.fromEntries(supportedVersions.map(version => {
     const chunk = new (Chunks(version))()
     return [version, { minY: chunk.minY ?? 0, worldHeight: chunk.worldHeight ?? 256 }]
   }))
-))
+  fs.writeJSONSync(path.join(publicPath, 'worldBounds.json'), bounds)
 
-const texturesPath = path.resolve(__dirname, '../public/textures')
-if (fs.existsSync(texturesPath) && !process.argv.includes('-f')) {
-  console.log('textures folder already exists, skipping...')
-  process.exit(0)
+  for (const version of supportedVersions) {
+    const atlasPath = path.join(texturesPath, version + '.png')
+    const statesPath = path.join(blockStatesPath, version + '.json')
+    if (!force && fs.existsSync(atlasPath) && fs.existsSync(statesPath)) {
+      console.log(`Using existing assets for ${version}`)
+      continue
+    }
+
+    console.log(`Generating viewer assets for Minecraft ${version}`)
+    const assets = assetsFor(version)
+    const atlas = makeTextureAtlas(assets)
+    fs.writeFileSync(atlasPath, atlas.image)
+    const blockStates = prepareBlocksStates(assets, atlas)
+    fs.writeJSONSync(statesPath, blockStates)
+    fs.copySync(assets.directory, path.join(texturesPath, version), { overwrite: true })
+    console.log(`Generated textures/${version}.png and blocksStates/${version}.json`)
+  }
 }
-fs.mkdirSync(texturesPath, { recursive: true })
 
-const blockStatesPath = path.resolve(__dirname, '../public/blocksStates')
-fs.mkdirSync(blockStatesPath, { recursive: true })
-
-for (const version of supportedVersions) {
-  const assets = mcAssets(version)
-  const atlas = makeTextureAtlas(assets)
-  const out = fs.createWriteStream(path.resolve(texturesPath, version + '.png'))
-  const stream = atlas.canvas.pngStream()
-  stream.on('data', (chunk) => out.write(chunk))
-  stream.on('end', () => console.log('Generated textures/' + version + '.png'))
-
-  const blocksStates = JSON.stringify(prepareBlocksStates(assets, atlas))
-  fs.writeFileSync(path.resolve(blockStatesPath, version + '.json'), blocksStates)
-
-  fs.copySync(assets.directory, path.resolve(texturesPath, version), { overwrite: true })
-}
+main()
