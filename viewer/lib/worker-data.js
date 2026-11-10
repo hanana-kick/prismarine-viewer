@@ -3,7 +3,7 @@
 // The worker needs 26.3 only; do not bundle every legacy Minecraft version.
 module.exports = {
   pc: {
-    '26.3': {
+    26.3: {
       get attributes () { return require('minecraft-data/minecraft-data/data/pc/26.3/attributes.json') },
       get blockCollisionShapes () { return require('minecraft-data/minecraft-data/data/pc/26.3/blockCollisionShapes.json') },
       get blocks () { return require('minecraft-data/minecraft-data/data/pc/26.3/blocks.json') },
