@@ -102,7 +102,9 @@ const forestWorld = {
     const inLeaves = pos.x >= 3 && pos.x <= 5 &&
       pos.y >= 67 && pos.y <= 69 &&
       pos.z >= 3 && pos.z <= 5
-    return inLeaves ? leafBlock : airBlock
+    const block = inLeaves ? leafBlock : airBlock
+    block.position = { x: pos.x, y: pos.y, z: pos.z }
+    return block
   }
 }
 const forestMesh = getSectionGeometry(0, 64, 0, forestWorld, states)
