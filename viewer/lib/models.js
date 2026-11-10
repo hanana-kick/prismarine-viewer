@@ -1,33 +1,6 @@
 const { Vec3 } = require('vec3')
 
-const tints = require('minecraft-data')('26.3').tints
-
-for (const key of Object.keys(tints)) {
-  tints[key] = prepareTints(tints[key])
-}
-
-function prepareTints (tints) {
-  const map = new Map()
-  const defaultValue = tintToGl(tints.default)
-  for (let { keys, color } of tints.data) {
-    color = tintToGl(color)
-    for (const key of keys) {
-      map.set(`${key}`, color)
-    }
-  }
-  return new Proxy(map, {
-    get: (target, key) => {
-      return target.has(key) ? target.get(key) : defaultValue
-    }
-  })
-}
-
-function tintToGl (tint) {
-  const r = (tint >> 16) & 0xff
-  const g = (tint >> 8) & 0xff
-  const b = tint & 0xff
-  return [r / 255, g / 255, b / 255]
-}
+const tints = require('./biome-tints-26.3.json')
 
 const elemFaces = {
   up: {
