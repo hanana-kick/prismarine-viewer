@@ -1,0 +1,53 @@
+name: Verify pnpm GitHub installation
+
+on:
+  push:
+    branches: [mc-26.3]
+    paths:
+      - '.github/workflows/pnpm-consumer.yml'
+      - 'public/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pnpm-consumer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+          run_install: false
+      - name: Install viewer directly from GitHub using pnpm
+        run: |
+          mkdir consumer
+          cd consumer
+          printf '%s\n' '{"name":"mc26-consumer-smoke","version":"1.0.0","private":true}' > package.json
+          pnpm add github:hanana-kick/prismarine-viewer#mc-26.3
+          node - <<'NODE'
+          const assert = require('node:assert/strict')
+          const fs = require('node:fs')
+          const path = require('node:path')
+          const entry = require.resolve('prismarine-viewer/package.json')
+          const root = path.dirname(entry)
+          const pkg = require(entry)
+          const viewer = require('prismarine-viewer')
+          assert(pkg.version.includes('mc26.3'), 'Incorrect GitHub fork version')
+          assert(viewer.supportedVersions.includes('26.3'), 'Missing Minecraft 26.3')
+          assert.equal(typeof viewer.mineflayer, 'function')
+          for (const file of [
+            'public/index.js', 'public/worker.js', 'public/worldBounds.json',
+            'public/textures/26.3.png', 'public/blocksStates/26.3.json'
+          ]) {
+            assert(fs.existsSync(path.join(root, file)), `Missing GitHub package file: ${file}`)
+          }
+          const bounds = require(path.join(root, 'public/worldBounds.json'))
+          assert.equal(bounds['26.3'].minY, -64)
+          assert.equal(bounds['26.3'].worldHeight, 384)
+          console.log('pnpm installed Minecraft Java 26.3 viewer successfully from GitHub')
+          NODE
