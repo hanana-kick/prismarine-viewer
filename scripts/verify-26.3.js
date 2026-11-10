@@ -26,7 +26,6 @@ assert(bounds['26.3'] && bounds['26.3'].minY === -64 && bounds['26.3'].worldHeig
 assert(fs.statSync(path.join(dir, 'index.js')).size > 1000, 'Missing browser client bundle')
 assert(fs.statSync(path.join(dir, 'worker.js')).size > 1000, 'Missing Web Worker bundle')
 
-
 const palette = require(path.join(root, 'viewer/lib/biome-tints-26.3.json'))
 for (const [kind, names] of Object.entries({
   grass: ['forest', 'plains', 'dark_forest', 'taiga'],
@@ -80,5 +79,41 @@ for (const [name, state] of Object.entries(states)) {
 }
 console.log(`26.3 model audit: ${missingModels} missing models, ${missingFaces} missing texture faces`)
 if (sampleFailures.length) console.log('Model audit samples: ' + sampleFailures.join('; '))
+
+const { getSectionGeometry } = require('../viewer/lib/models')
+const biome = { name: 'forest' }
+const airBlock = {
+  name: 'air',
+  transparent: true,
+  isCube: false,
+  biome,
+  getProperties: () => ({})
+}
+const leafBlock = {
+  name: 'dark_oak_leaves',
+  transparent: true,
+  isCube: true,
+  biome,
+  getProperties: () => ({ distance: 7, persistent: false, waterlogged: false })
+}
+const forestWorld = {
+  minY: -64,
+  getBlock: pos => {
+    const inLeaves = pos.x >= 3 && pos.x <= 5 &&
+      pos.y >= 67 && pos.y <= 69 &&
+      pos.z >= 3 && pos.z <= 5
+    return inLeaves ? leafBlock : airBlock
+  }
+}
+const forestMesh = getSectionGeometry(0, 64, 0, forestWorld, states)
+assert(forestMesh.positions.length > 0, 'Dark oak leaves have no vertices')
+assert(forestMesh.colors.length > 0, 'Dark oak leaves have no vertex colours')
+for (const value of forestMesh.colors) {
+  assert(Number.isFinite(value), 'Leaf mesh colour is not finite')
+}
+const green = Array.from(forestMesh.colors).filter((value, index) => index % 3 === 1)
+const minimumGreen = Math.min(...green)
+assert(minimumGreen > 0.12, `Dark oak leaf colours are still too dark: ${minimumGreen}`)
+console.log(`26.3 dense-leaf meshing check passed: minimum green = ${minimumGreen.toFixed(3)}`)
 
 console.log('Minecraft 26.3 data, block models, chunk world bounds and browser bundles verified')

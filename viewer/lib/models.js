@@ -202,6 +202,12 @@ function buildRotationMatrix (axis, degree) {
   return matrix
 }
 
+function isAoOccluder (block) {
+  // Transparent full-collision blocks (leaves, glass, etc.) do not cast
+  // block-shaped ambient occlusion onto adjacent leaf faces.
+  return !!(block && block.isCube && !block.transparent)
+}
+
 function renderElement (world, cursor, element, doAO, attr, globalMatrix, globalShift, block, biome) {
   const cullIfIdentical = block.name.indexOf('glass') >= 0
 
@@ -309,9 +315,9 @@ function renderElement (world, cursor, element, doAO, attr, globalMatrix, global
         const side2 = world.getBlock(cursor.offset(...side2Dir))
         const corner = world.getBlock(cursor.offset(...cornerDir))
 
-        const side1Block = (side1 && side1.isCube) ? 1 : 0
-        const side2Block = (side2 && side2.isCube) ? 1 : 0
-        const cornerBlock = (corner && corner.isCube) ? 1 : 0
+        const side1Block = isAoOccluder(side1) ? 1 : 0
+        const side2Block = isAoOccluder(side2) ? 1 : 0
+        const cornerBlock = isAoOccluder(corner) ? 1 : 0
 
         // TODO: correctly interpolate ao light based on pos (evaluate once for each corner of the block)
 
