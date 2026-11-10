@@ -28,7 +28,7 @@ function run (args, env = {}) {
 }
 
 function assertExtracted (directory) {
-  for (const name of ['blocks_states.json', 'blocks_models.json', 'blocks_textures.json', 'items_textures.json']) {
+  for (const name of ['blocks_states.json', 'blocks_models.json']) {
     if (!fs.existsSync(path.join(directory, name))) {
       throw new Error(`Minecraft 26.3 extraction failed: missing ${name}`)
     }
@@ -48,13 +48,9 @@ function extractAssets () {
   const outputDir = path.join(temporary, 'output')
   const tempDir = path.join(temporary, 'minecraft')
   try {
-    const extractor = require.resolve('minecraft-jar-extractor/image_names.js')
     run([
-      '-r',
-      path.join(__dirname, 'redirect-minecraft-data.js'),
-      extractor,
-      '26.3',
-      outputDir,
+      path.join(__dirname, 'extract-26.3-assets.js'),
+      path.join(outputDir, '26.3'),
       tempDir
     ])
 

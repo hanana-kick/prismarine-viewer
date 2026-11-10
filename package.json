@@ -58,6 +58,6 @@
     "standard": "^17.1.0",
     "webpack": "^5.10.2",
     "webpack-cli": "^6.0.1",
-    "minecraft-jar-extractor": "^1.1.0"
+    "extract-zip": "^2.0.1"
   }
 }
