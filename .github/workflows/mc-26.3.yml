@@ -3,7 +3,12 @@ name: Minecraft Java 26.3 GitHub distribution
 on:
   push:
     branches: [mc-26.3]
+    paths-ignore:
+      - 'public/**'
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build-and-verify:
@@ -18,11 +23,26 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
-      - name: Install and build GitHub-distributed package
+      - name: Install source dependencies
         run: npm install
+      - name: Generate Minecraft Java 26.3 distributable
+        run: npm run build
+        env:
+          PRISMARINE_VIEWER_TARGET_VERSIONS: '26.3'
       - name: Validate Minecraft Java 26.3
         run: npm run verify:mc26
       - name: Check code style
         run: npm run lint
       - name: Check package contents
         run: npm pack --dry-run
+      - name: Commit prebuilt GitHub distribution
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f public/index.js public/worker.js public/worldBounds.json
+          git add -f public/textures/26.3.png public/textures/26.3
+          git add -f public/blocksStates/26.3.json
+          if ! git diff --cached --quiet; then
+            git commit -m "build(mc26.3): include prebuilt pnpm GitHub assets [skip ci]"
+            git push origin HEAD:mc-26.3
+          fi

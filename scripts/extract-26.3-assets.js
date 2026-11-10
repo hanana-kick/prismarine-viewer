@@ -65,6 +65,21 @@ async function main () {
     throw new Error('Failed to extract Minecraft 26.3 block models')
   }
 
+  // Item.js consumes items_textures.json to render dropped items. Item models
+  // gained structured texture descriptors in 26.x, so resolve common direct
+  // textures rather than calling string methods on those descriptors.
+  const itemsTextures = mcData.itemsArray.map(item => {
+    const name = item.name.replace(/^minecraft:/, '')
+    let texture = null
+    if (fs.existsSync(path.join(texturesDir, 'item', name + '.png'))) {
+      texture = 'items/' + name
+    } else if (fs.existsSync(path.join(texturesDir, 'block', name + '.png'))) {
+      texture = 'block/' + name
+    }
+    return { name, texture }
+  })
+  fs.writeJSONSync(path.join(outputDir, 'items_textures.json'), itemsTextures)
+
   fs.writeJSONSync(path.join(outputDir, 'blocks_states.json'), blocksStates)
   fs.writeJSONSync(path.join(outputDir, 'blocks_models.json'), models)
   for (const entry of fs.readdirSync(texturesDir)) {

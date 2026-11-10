@@ -18,7 +18,8 @@ const indexConfig = {
   },
   resolve: {
     fallback: {
-      zlib: false
+      zlib: false,
+      path: require.resolve('path-browserify')
     }
   },
   module: {
@@ -68,7 +69,8 @@ const workerConfig = {
   },
   resolve: {
     fallback: {
-      zlib: false
+      zlib: false,
+      path: require.resolve('path-browserify')
     }
   },
   plugins: [

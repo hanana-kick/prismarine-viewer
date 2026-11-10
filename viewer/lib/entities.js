@@ -5,7 +5,8 @@ const Entity = require('./entity/Entity')
 const { getItemMesh, animateItem } = require('./entity/Item')
 const { dispose3 } = require('./dispose')
 
-const { createCanvas } = require('canvas')
+let createCanvas
+try { ({ createCanvas } = require('canvas')) } catch {}
 
 function getEntityMesh (entity, scene, version) {
   // A dropped item is its own item's model, and the stack only arrives after the spawn.
@@ -17,9 +18,9 @@ function getEntityMesh (entity, scene, version) {
       if (entity.skin) textures.default = entity.skin
       if (entity.cape) textures.cape = entity.cape
       const model = entity.name === 'player' && entity.skinModel === 'slim' ? 'player_slim' : entity.name
-      const e = new Entity('1.16.4', model, scene, textures)
+      const e = new Entity(version, model, scene, textures)
 
-      if (entity.username !== undefined) {
+      if (entity.username !== undefined && createCanvas) {
         const canvas = createCanvas(500, 100)
 
         const ctx = canvas.getContext('2d')

@@ -1,6 +1,5 @@
 function cleanupBlockName (name) {
-  if (name.startsWith('block') || name.startsWith('minecraft:block')) return name.split('/')[1]
-  return name
+  return name.replace(/^minecraft:/, '').replace(/^blocks?\\//, '')
 }
 
 function getModel (name, blocksModels) {

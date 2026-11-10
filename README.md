@@ -20,13 +20,15 @@ bot.once('spawn', () => {
 })
 ```
 
-A GitHub install executes the package's `prepare` script if prebuilt files are absent.
-The script downloads the official Minecraft 26.3 client JAR, extracts block models
-and textures, builds the texture atlas and block-state JSON, and runs webpack.
-The first install therefore needs network access and a working `canvas` build
-environment. Subsequent installs may still build in a fresh Git dependency clone.
-For maintainers, `npm run build` forces a rebuild and `npm run verify:mc26`
-checks the generated 26.3 data and browser bundles.
+This branch ships prebuilt **26.3 browser bundles, block-state JSON and textures**
+in Git, so a normal pnpm GitHub install needs no package build script approval.
+It targets Minecraft Java 26.3; older versions can be built locally but are not
+part of the prebuilt 26.3 distribution.
+
+For maintainers, `npm run build` extracts the official 26.3 Minecraft client JAR
+and regenerates the atlas and browser bundles (requires network access and a
+working Node canvas toolchain). `npm run verify:mc26` validates the generated
+26.3 data, models and bundles.
 
 Dependencies for the 26.3 data, registry, block and chunk support currently use
 the pinned `@wp2508` PrismarineJS forks, since the upstream 26.3 support PRs
