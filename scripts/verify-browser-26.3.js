@@ -42,19 +42,69 @@ async function test () {
     })
     const page = await browser.newPage()
     await page.setViewport({ width: 800, height: 600, deviceScaleFactor: 1 })
-    page.on('pageerror', error => pageErrors.push(error.message))
+    page.on('pageerror', error => {
+      pageErrors.push(error.message)
+      console.error('[Browser pageerror] ' + error.stack)
+    })
+    page.on('console', message => {
+      console.log('[Browser ' + message.type() + '] ' + message.text())
+    })
+    page.on('requestfailed', request => {
+      console.error('[Browser request failed] ' + request.url() + ': ' +
+        JSON.stringify(request.failure()))
+    })
+    page.on('response', response => {
+      if (response.status() >= 400) {
+        console.error('[Browser HTTP ' + response.status() + '] ' + response.url())
+      }
+    })
     await page.goto('http://127.0.0.1:' + port + '/?viewerDebug=1', { waitUntil: 'domcontentloaded' })
-    await page.waitForFunction(() => {
-      const debug = window.__prismarineDebug
-      if (!debug || !debug.player()) return false
-      const player = debug.player()
-      let textured = false
-      player.traverse(child => {
-        if (child.isMesh && child.material?.map) textured = true
+    try {
+      await page.waitForFunction(() => {
+        const debug = window.__prismarineDebug
+        if (!debug || !debug.player()) return false
+        const player = debug.player()
+        let textured = false
+        player.traverse(child => {
+          if (child.isMesh && child.material?.map) textured = true
+        })
+        return textured &&
+          Object.keys(debug.viewer.entities.entities).length >= 4
+      }, { timeout: 30000 })
+    } catch (error) {
+      const diagnostics = await page.evaluate(() => {
+        const debug = window.__prismarineDebug
+        if (!debug) {
+          return { debugFound: false, canvasCount: document.querySelectorAll('canvas').length }
+        }
+        const player = debug.player()
+        const meshes = []
+        player?.traverse(object => {
+          if (object.isMesh) {
+            meshes.push({
+              type: object.type,
+              vertices: object.geometry?.attributes?.position?.count,
+              texture: !!object.material?.map,
+              visible: object.visible,
+              frustumCulled: object.frustumCulled
+            })
+          }
+        })
+        return {
+          debugFound: true,
+          playerFound: !!player,
+          playerPosition: player?.position.toArray(),
+          cameraPosition: debug.viewer.camera.position.toArray(),
+          meshes,
+          entities: Object.keys(debug.viewer.entities.entities),
+          worldActive: debug.viewer.world.active
+        }
       })
-      return textured &&
-        Object.keys(debug.viewer.entities.entities).length >= 4
-    }, { timeout: 30000 })
+      console.error('[Browser diagnostic] ' + JSON.stringify(diagnostics))
+      fs.mkdirSync(path.dirname(output), { recursive: true })
+      await page.screenshot({ path: output, type: 'png' })
+      throw error
+    }
 
     const state = await page.evaluate(() => {
       const debug = window.__prismarineDebug
@@ -80,7 +130,7 @@ async function test () {
 
     fs.mkdirSync(path.dirname(output), { recursive: true })
     const screenshot = await page.screenshot({ path: output, type: 'png' })
-    const image = PNG.sync.read(screenshot)
+    const image = PNG.sync.read(Buffer.from(screenshot))
     let nonBackground = 0
     let magenta = 0
     for (let y = 140; y < 460; y++) {
