@@ -10,7 +10,6 @@ const THREE = require('three')
 const { Vec3 } = require('vec3')
 const { io } = require('socket.io-client')
 
-global.THREE = THREE
 const root = path.resolve(__dirname, '..')
 const Entity = require('../viewer/lib/entity/Entity')
 const { Entities } = require('../viewer/lib/entities')
