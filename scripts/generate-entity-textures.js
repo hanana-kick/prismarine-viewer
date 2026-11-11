@@ -153,6 +153,27 @@ function generateEntityTextureMap (assetsDirectory) {
     }
   }
   const defaults = {}
+  // Every new boat/chest-boat entity reuses the same boat rig but has its
+  // own timber texture. Mojang names the texture by wood, not entity type.
+  for (const wood of [
+    'acacia', 'birch', 'cherry', 'dark_oak', 'jungle', 'mangrove', 'oak',
+    'pale_oak', 'poplar', 'spruce'
+  ]) {
+    const candidate = 'entity/boat/' + wood
+    if (!available.has(candidate)) continue
+    defaults[wood + '_boat'] = 'textures/26.3/' + candidate + '.png'
+    defaults[wood + '_chest_boat'] = 'textures/26.3/' + candidate + '.png'
+  }
+  if (available.has('entity/boat/bamboo')) {
+    defaults.bamboo_raft = 'textures/26.3/entity/boat/bamboo.png'
+    defaults.bamboo_chest_raft = 'textures/26.3/entity/boat/bamboo.png'
+  }
+  if (available.has('entity/illager/illusioner')) {
+    defaults.illusioner = 'textures/26.3/entity/illager/illusioner.png'
+  }
+  if (available.has('entity/zombie/zombie')) {
+    defaults.giant = 'textures/26.3/entity/zombie/zombie.png'
+  }
   for (const name of Object.keys(definitions)) {
     const matched = findDefaultTexture(name, available)
     if (matched) defaults[name] = 'textures/26.3/' + matched + '.png'

@@ -31,6 +31,78 @@ const compatibleEntityRigs = {
   zombie_nautilus: 'turtle'
 }
 
+// 26.3 registers separate boat entities for every wood, while the legacy
+// geometry bundle provides one reusable boat rig.
+function selectRig (type) {
+  if (/_chest_boat$/.test(type) || /_boat$/.test(type) ||
+      type === 'bamboo_raft' || type === 'bamboo_chest_raft') return 'boat'
+  const additions = {
+    giant: 'zombie',
+    illusioner: 'evoker',
+    furnace_minecart: 'minecart',
+    spawner_minecart: 'minecart',
+    spectral_arrow: 'arrow'
+  }
+  return compatibleEntityRigs[type] || additions[type] || type
+}
+
+// These modern entities do not have compatible Bedrock JSON rigs. Render a
+// deliberately simple, correctly sized form instead of a magenta failure cube.
+const simpleEntities = {
+  cushion: { shape: 'box', width: 1, height: 0.25, texture: 'entity/cushion/red_cushion' },
+  end_crystal: { shape: 'octahedron', width: 1.4, height: 1.5, texture: 'entity/end_crystal/end_crystal' },
+  falling_block: { shape: 'box', width: 0.98, height: 0.98, texture: 'blocks/stone' },
+  tnt: { shape: 'box', width: 0.98, height: 0.98, texture: 'blocks/tnt_side' },
+  item_frame: { shape: 'box', width: 0.5, height: 0.5, depth: 0.0625, texture: 'blocks/oak_planks' },
+  glow_item_frame: { shape: 'box', width: 0.5, height: 0.5, depth: 0.0625, texture: 'blocks/oak_planks' },
+  painting: { shape: 'box', width: 0.5, height: 0.5, depth: 0.0625, texture: 'blocks/oak_planks' },
+  block_display: { shape: 'box', width: 1, height: 1, texture: 'blocks/stone' },
+  ominous_item_spawner: { shape: 'sphere', width: 0.25, height: 0.25 },
+  breeze_wind_charge: { shape: 'sphere', width: 0.3125, height: 0.3125 },
+  wind_charge: { shape: 'sphere', width: 0.3125, height: 0.3125 },
+  firework_rocket: { shape: 'sphere', width: 0.25, height: 0.25 },
+  splash_potion: { shape: 'sphere', width: 0.25, height: 0.25 },
+  lingering_potion: { shape: 'sphere', width: 0.25, height: 0.25 },
+  leash_knot: { shape: 'sphere', width: 0.375, height: 0.5 }
+}
+
+function makeSimpleEntity (type, spec) {
+  const width = spec.width
+  const height = spec.height
+  const depth = spec.depth || width
+  let geometry
+  if (spec.shape === 'octahedron') {
+    geometry = new THREE.OctahedronGeometry(width / 2)
+  } else if (spec.shape === 'sphere') {
+    geometry = new THREE.SphereGeometry(width / 2, 12, 8)
+  } else {
+    geometry = new THREE.BoxGeometry(width, height, depth)
+  }
+  const material = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: false })
+  const mesh = new THREE.Mesh(geometry, material)
+  mesh.position.y = height / 2
+  mesh.userData.approximate26 = type
+  if (spec.texture) {
+    mesh.onBeforeRender = () => {
+      mesh.onBeforeRender = null
+      loadTexture('textures/26.3/' + spec.texture + '.png', texture => {
+        applyTexture(material, texture)
+      })
+    }
+  }
+  const result = new THREE.Object3D()
+  result.add(mesh)
+  return result
+}
+
+// These are protocol helpers or particle/display metadata that have no
+// meaningful geometry without a dedicated renderer. An invisible entity is
+// preferable to pretending a 6x6 particle cloud is a magenta solid cube.
+const nonMeshEntities = new Set([
+  'area_effect_cloud', 'interaction', 'marker', 'lightning_bolt',
+  'text_display', 'item_display'
+])
+
 function textureFor (version, type, variant, source) {
   if (version === '26.3') {
     if (variant === 'default' && entityTextures26.defaults[type]) {
@@ -323,7 +395,15 @@ function getMesh (texture, jsonModel, override) {
 
 class Entity {
   constructor (version, type, scene, textures = {}) {
-    const e = entities[type] || entities[compatibleEntityRigs[type]]
+    if (nonMeshEntities.has(type)) {
+      this.mesh = new THREE.Object3D()
+      return
+    }
+    if (version === '26.3' && simpleEntities[type]) {
+      this.mesh = makeSimpleEntity(type, simpleEntities[type])
+      return
+    }
+    const e = entities[selectRig(type)]
     if (!e) throw new Error(`Unknown entity ${type}`)
 
     this.mesh = new THREE.Object3D()
@@ -337,9 +417,13 @@ class Entity {
       scene.add( skeletonHelper ) */
       this.mesh.add(mesh)
     }
+    if (type === 'giant') this.mesh.scale.setScalar(6)
   }
 }
 
 module.exports = Entity
 module.exports.textureFor = textureFor
 module.exports.compatibleEntityRigs = compatibleEntityRigs
+module.exports.selectRig = selectRig
+module.exports.nonMeshEntities = nonMeshEntities
+module.exports.simpleEntities = simpleEntities

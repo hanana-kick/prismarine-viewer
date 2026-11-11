@@ -5,20 +5,29 @@ const Entity = require('./entity/Entity')
 const { getItemMesh, animateItem } = require('./entity/Item')
 const { dispose3 } = require('./dispose')
 
+const invisibleTypes = Entity.nonMeshEntities
+const warnedMissing = new Set()
+
 let createCanvas
 try { ({ createCanvas } = require('canvas')) } catch {}
 
 function getEntityMesh (entity, scene, version) {
   // A dropped item is its own item's model, and the stack only arrives after the spawn.
-  if (entity.itemName) return getItemMesh(entity.itemName, version, () => missingModel(entity))
-  if (entity.name === 'item') return null
-  if (entity.name) {
+  const entityName = typeof entity.name === 'string'
+    ? entity.name.replace(/^minecraft:/, '')
+    : entity.name
+  if (entity.itemName) return getItemMesh(entity.itemName, version, () => missingModel({ ...entity, name: entityName }))
+  if (entityName === 'item' || invisibleTypes.has(entityName)) return null
+  if (entityName) {
     try {
       const textures = {}
       if (entity.skin) textures.default = entity.skin
       if (entity.cape) textures.cape = entity.cape
-      const model = entity.name === 'player' && entity.skinModel === 'slim' ? 'player_slim' : entity.name
+      const model = entityName === 'player' && entity.skinModel === 'slim' ? 'player_slim' : entityName
       const e = new Entity(version, model, scene, textures)
+      if (!e.mesh.children.length) {
+        throw new Error('Empty geometry for ' + entityName)
+      }
 
       if (entity.username !== undefined && createCanvas) {
         const canvas = createCanvas(500, 100)
@@ -48,18 +57,28 @@ function getEntityMesh (entity, scene, version) {
 
       return e.mesh
     } catch (err) {
-      console.log(err)
+      if (!warnedMissing.has(entityName)) {
+        console.warn('[prismarine-viewer] No complete entity model for ' + entityName, err)
+        warnedMissing.add(entityName)
+      }
     }
   }
 
-  return missingModel(entity)
+  return missingModel({ ...entity, name: entityName })
 }
 
 function missingModel (entity) {
-  const geometry = new THREE.BoxGeometry(entity.width, entity.height, entity.width)
-  geometry.translate(0, entity.height / 2, 0)
-  const material = new THREE.MeshBasicMaterial({ color: 0xff00ff })
+  // Unknown modded or malformed entities should remain identifiable in logs,
+  // never as fluorescent magenta geometry across the world.
+  const width = Number.isFinite(entity.width) && entity.width > 0 ? entity.width : 0.6
+  const height = Number.isFinite(entity.height) && entity.height > 0 ? entity.height : 0.6
+  const geometry = new THREE.BoxGeometry(width, height, width)
+  geometry.translate(0, height / 2, 0)
+  const material = new THREE.MeshBasicMaterial({
+    color: 0x9fa4ae, wireframe: true, transparent: true, opacity: 0.55
+  })
   const cube = new THREE.Mesh(geometry, material)
+  cube.userData.unresolvedEntity = entity.name || 'unknown'
   return cube
 }
 
