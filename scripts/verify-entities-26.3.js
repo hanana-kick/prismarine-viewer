@@ -76,6 +76,52 @@ for (const [id, name] of names.entries()) {
   assert(!magenta, `${name} was rendered with the magenta fallback`)
 }
 entities.clear()
+
+// Audit all registered 26.3 entities, not only a handpicked smoke-test set.
+// The previous regression suite covered just 22 types and missed magenta
+// placeholders for unsupported names or model-construction failures.
+const gameData = require('minecraft-data')('26.3')
+const listed = gameData.entitiesArray
+assert(listed.length >= 150, 'Expected the complete 26.3 entity registry')
+const diagnosticScene = new THREE.Scene()
+const diagnosticEntities = new Entities(diagnosticScene)
+diagnosticEntities.setVersion('26.3')
+const fallbackTypes = []
+const blankTypes = []
+const thrownTypes = []
+for (const [i, entity] of listed.entries()) {
+  try {
+    const id = i + 4000
+    diagnosticEntities.update({
+      id, name: entity.name, width: entity.width, height: entity.height,
+      pos: { x: i * 2, y: 64, z: 0 }
+    })
+    const mesh = diagnosticEntities.entities[id]
+    if (!mesh) {
+      blankTypes.push(entity.name)
+      continue
+    }
+    let magenta = false
+    let skinned = false
+    mesh.traverse(node => {
+      if (node.isSkinnedMesh && node.geometry?.attributes.position.count > 0) skinned = true
+      if (node.isMesh && node.material?.color?.getHex() === 0xff00ff) magenta = true
+    })
+    if (magenta) fallbackTypes.push(entity.name)
+    else if (!skinned && entity.name !== 'item') blankTypes.push(entity.name)
+  } catch (err) {
+    thrownTypes.push(entity.name + ': ' + err.message)
+  }
+}
+diagnosticEntities.clear()
+console.log('26.3 full entity registry audit: magenta=' + fallbackTypes.length +
+  ', empty=' + blankTypes.length + ', threw=' + thrownTypes.length)
+console.log('26.3 magenta types: ' + fallbackTypes.join(', '))
+console.log('26.3 empty types: ' + blankTypes.join(', '))
+if (thrownTypes.length) console.log('26.3 thrown types: ' + thrownTypes.join('; '))
+for (const name of ['salmon', 'cod', 'tropical_fish', 'pufferfish', 'bee', 'fox', 'bat', 'mooshroom']) {
+  assert(!fallbackTypes.includes(name), 'Common world mob fell back to magenta: ' + name)
+}
 console.log(`Minecraft Java 26.3: validated ${names.length} player/mob rigs and ${Object.keys(manifest.textures).length} mapped textures`)
 
 async function initialPositionTest () {
