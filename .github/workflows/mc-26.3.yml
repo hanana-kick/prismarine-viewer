@@ -29,6 +29,14 @@ jobs:
         run: npm run verify:mc26
       - name: Verify Minecraft 26.3 entity textures, meshes and socket initialization
         run: npm run verify:entities
+      - name: Verify real browser avatar and entity rendering
+        run: npm run verify:browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mc26.3-browser-screenshot
+          path: test/26.3-browser.png
+          if-no-files-found: ignore
       - name: Check code style
         run: npm run lint
       - name: Check package contents

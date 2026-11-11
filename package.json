@@ -11,7 +11,8 @@
     "fix": "standard --fix",
     "build": "node scripts/prepare.js --force",
     "verify:mc26": "node scripts/verify-26.3.js",
-    "verify:entities": "node scripts/verify-entities-26.3.js && node scripts/verify-player-visibility-26.3.js"
+    "verify:entities": "node scripts/verify-entities-26.3.js && node scripts/verify-player-visibility-26.3.js",
+    "verify:browser": "node scripts/verify-browser-26.3.js"
   },
   "author": "PrismarineJS",
   "license": "MIT",
@@ -59,6 +60,7 @@
     "webpack": "^5.10.2",
     "webpack-cli": "^6.0.1",
     "extract-zip": "^2.0.1",
-    "path-browserify": "^1.0.1"
+    "path-browserify": "^1.0.1",
+    "pngjs": "^7.0.0"
   }
 }
