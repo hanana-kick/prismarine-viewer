@@ -102,7 +102,9 @@ for (const [i, entity] of listed.entries()) {
     })
     const mesh = diagnosticEntities.entities[id]
     if (!mesh) {
-      blankTypes.push(entity.name)
+      if (entity.name !== 'item' && !Entity.nonMeshEntities.has(entity.name)) {
+        blankTypes.push(entity.name)
+      }
       continue
     }
     let magenta = false
