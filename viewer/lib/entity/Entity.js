@@ -84,7 +84,7 @@ function makeSimpleEntity (type, spec) {
   mesh.userData.approximate26 = type
   if (spec.texture) {
     mesh.onBeforeRender = () => {
-      mesh.onBeforeRender = null
+      mesh.onBeforeRender = () => {}
       loadTexture('textures/26.3/' + spec.texture + '.png', texture => {
         applyTexture(material, texture)
       })
