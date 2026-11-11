@@ -11,7 +11,7 @@
     "fix": "standard --fix",
     "build": "node scripts/prepare.js --force",
     "verify:mc26": "node scripts/verify-26.3.js",
-    "verify:entities": "node scripts/verify-entities-26.3.js"
+    "verify:entities": "node scripts/verify-entities-26.3.js && node scripts/verify-player-visibility-26.3.js"
   },
   "author": "PrismarineJS",
   "license": "MIT",
