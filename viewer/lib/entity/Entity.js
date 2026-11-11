@@ -1,6 +1,50 @@
 /* global THREE */
 
 const entities = require('./entities.json')
+const entityTextures26 = require('./texture-map-26.3.json')
+
+// Geometry for these newer Java Edition mobs is not included in the legacy
+// Bedrock geometry set. Use a related rig rather than a magenta debug cube;
+// the 26.3 texture is resolved separately. Dedicated rigs are future work.
+const compatibleEntityRigs = {
+  allay: 'vex',
+  armadillo: 'rabbit',
+  axolotl: 'dolphin',
+  bogged: 'skeleton',
+  breeze: 'blaze',
+  camel: 'llama',
+  camel_husk: 'llama',
+  copper_golem: 'iron_golem',
+  creaking: 'enderman',
+  frog: 'rabbit',
+  glow_squid: 'squid',
+  goat: 'sheep',
+  happy_ghast: 'ghast',
+  mannequin: 'armor_stand',
+  nautilus: 'turtle',
+  parched: 'skeleton',
+  sniffer: 'ravager',
+  sulfur_cube: 'slime',
+  tadpole: 'cod',
+  trader_llama: 'llama',
+  warden: 'iron_golem',
+  zombie_nautilus: 'turtle'
+}
+
+function textureFor (version, type, variant, source) {
+  if (version === '26.3') {
+    if (variant === 'default' && entityTextures26.defaults[type]) {
+      return entityTextures26.defaults[type]
+    }
+    if (source && entityTextures26.textures[source]) {
+      return entityTextures26.textures[source]
+    }
+    // A variant without a matching texture should not render a broken layer.
+    return null
+  }
+  return source ? source.replace('textures', 'textures/' + version) + '.png' : null
+}
+
 const { loadTexture } = globalThis.isElectron ? require('../utils.electron.js') : require('../utils')
 let createCanvas
 try { ({ createCanvas } = require('canvas')) } catch {}
@@ -270,7 +314,7 @@ function getMesh (texture, jsonModel, override) {
         if (override) loadTexture(override, texture => applyTexture(material, prepareSkin(texture)))
       })
     } else {
-      loadTexture(override, texture => applyTexture(material, texture))
+      if (override) loadTexture(override, texture => applyTexture(material, prepareSkin(texture)))
     }
   }
 
@@ -279,15 +323,15 @@ function getMesh (texture, jsonModel, override) {
 
 class Entity {
   constructor (version, type, scene, textures = {}) {
-    const e = entities[type]
+    const e = entities[type] || entities[compatibleEntityRigs[type]]
     if (!e) throw new Error(`Unknown entity ${type}`)
 
     this.mesh = new THREE.Object3D()
     for (const [name, jsonModel] of Object.entries(e.geometry)) {
-      const texture = e.textures[name]
+      const originalTexture = e.textures[name] || (name === 'default' ? Object.values(e.textures)[0] : null)
+      const texture = textureFor(version, type, name, originalTexture)
       if (!texture && !textures[name]) continue
-      // console.log(JSON.stringify(jsonModel, null, 2))
-      const mesh = getMesh(texture && texture.replace('textures', 'textures/' + version) + '.png', jsonModel, textures[name])
+      const mesh = getMesh(texture, jsonModel, textures[name])
       /* const skeletonHelper = new THREE.SkeletonHelper( mesh )
       skeletonHelper.material.linewidth = 2
       scene.add( skeletonHelper ) */
@@ -297,3 +341,5 @@ class Entity {
 }
 
 module.exports = Entity
+module.exports.textureFor = textureFor
+module.exports.compatibleEntityRigs = compatibleEntityRigs

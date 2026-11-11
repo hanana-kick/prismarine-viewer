@@ -39,6 +39,7 @@ jobs:
           git add -f public/textures/26.3.png public/textures/26.3
           git add -f public/blocksStates/26.3.json
           git add -f viewer/lib/biome-tints-26.3.json
+          git add -f viewer/lib/entity/texture-map-26.3.json
           if ! git diff --cached --quiet; then
             git commit -m "build(mc26.3): include prebuilt pnpm GitHub assets [skip ci]"
             git push origin HEAD:mc-26.3

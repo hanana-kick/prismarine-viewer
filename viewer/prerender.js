@@ -7,6 +7,7 @@ const mcAssets = require('minecraft-assets')
 const Chunks = require('prismarine-chunk')
 const fs = require('fs-extra')
 const { generateBiomeTints } = require('../scripts/generate-biome-tints')
+const { generateEntityTextureMap } = require('../scripts/generate-entity-textures')
 const { supportedVersions } = require('./lib/version')
 const targetVersions = process.env.PRISMARINE_VIEWER_TARGET_VERSIONS
   ? process.env.PRISMARINE_VIEWER_TARGET_VERSIONS.split(',').map(s => s.trim())
@@ -57,7 +58,10 @@ function main () {
 
     console.log(`Generating viewer assets for Minecraft ${version}`)
     const assets = assetsFor(version)
-    if (version === '26.3') generateBiomeTints(assets.directory)
+    if (version === '26.3') {
+      generateBiomeTints(assets.directory)
+      generateEntityTextureMap(assets.directory)
+    }
     const atlas = makeTextureAtlas(assets)
     fs.writeFileSync(atlasPath, atlas.image)
     const blockStates = prepareBlocksStates(assets, atlas)
