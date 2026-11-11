@@ -1,4 +1,7 @@
-/* global THREE */
+// Use a local module binding in the Webpack browser bundle. A Node test's
+// global.THREE masked the missing browser import and prevented all entity
+// models, including the local player, from rendering.
+const THREE = require('three')
 
 const entities = require('./entities.json')
 const entityTextures26 = require('./texture-map-26.3.json')
