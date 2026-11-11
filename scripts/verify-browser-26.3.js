@@ -33,15 +33,22 @@ async function test () {
   const pageErrors = []
   try {
     browser = await puppeteer.launch({
-      headless: true,
+      headless: 'shell',
       args: [
         '--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage',
-        '--use-gl=angle', '--use-angle=swiftshader',
+        '--use-gl=angle', '--use-angle=swiftshader-webgl',
         '--enable-unsafe-swiftshader', '--enable-webgl'
       ]
     })
     const page = await browser.newPage()
     await page.setViewport({ width: 800, height: 600, deviceScaleFactor: 1 })
+    const webglReady = await page.evaluate(() => {
+      const canvas = document.createElement('canvas')
+      return !!(canvas.getContext('webgl2') || canvas.getContext('webgl'))
+    })
+    if (!webglReady) {
+      throw new Error('No WebGL context in CI Chromium: check SwiftShader headless launch flags')
+    }
     page.on('pageerror', error => {
       pageErrors.push(error.message)
       console.error('[Browser pageerror] ' + error.stack)
