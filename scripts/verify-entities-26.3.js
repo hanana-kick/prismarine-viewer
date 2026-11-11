@@ -88,12 +88,16 @@ const diagnosticEntities = new Entities(diagnosticScene)
 diagnosticEntities.setVersion('26.3')
 const fallbackTypes = []
 const blankTypes = []
+const unresolvedTypes = []
 const thrownTypes = []
 for (const [i, entity] of listed.entries()) {
   try {
     const id = i + 4000
     diagnosticEntities.update({
-      id, name: entity.name, width: entity.width, height: entity.height,
+      id,
+      name: entity.name,
+      width: entity.width,
+      height: entity.height,
       pos: { x: i * 2, y: 64, z: 0 }
     })
     const mesh = diagnosticEntities.entities[id]
@@ -102,23 +106,34 @@ for (const [i, entity] of listed.entries()) {
       continue
     }
     let magenta = false
-    let skinned = false
+    let hasGeometry = false
+    let unresolved = false
     mesh.traverse(node => {
-      if (node.isSkinnedMesh && node.geometry?.attributes.position.count > 0) skinned = true
+      if (node.isMesh && node.geometry?.attributes.position?.count > 0) hasGeometry = true
       if (node.isMesh && node.material?.color?.getHex() === 0xff00ff) magenta = true
+      if (node.userData?.unresolvedEntity) unresolved = true
     })
     if (magenta) fallbackTypes.push(entity.name)
-    else if (!skinned && entity.name !== 'item') blankTypes.push(entity.name)
+    if (unresolved) unresolvedTypes.push(entity.name)
+    if (!hasGeometry && entity.name !== 'item' && !Entity.nonMeshEntities.has(entity.name)) {
+      blankTypes.push(entity.name)
+    }
   } catch (err) {
     thrownTypes.push(entity.name + ': ' + err.message)
   }
 }
 diagnosticEntities.clear()
 console.log('26.3 full entity registry audit: magenta=' + fallbackTypes.length +
-  ', empty=' + blankTypes.length + ', threw=' + thrownTypes.length)
+  ', unresolved=' + unresolvedTypes.length + ', empty=' + blankTypes.length +
+  ', threw=' + thrownTypes.length)
 console.log('26.3 magenta types: ' + fallbackTypes.join(', '))
+console.log('26.3 unresolved types: ' + unresolvedTypes.join(', '))
 console.log('26.3 empty types: ' + blankTypes.join(', '))
 if (thrownTypes.length) console.log('26.3 thrown types: ' + thrownTypes.join('; '))
+assert.equal(fallbackTypes.length, 0, '26.3 rendered magenta debug entities')
+assert.equal(unresolvedTypes.length, 0, 'Registered 26.3 entities use unresolved wireframe placeholders')
+assert.equal(blankTypes.length, 0, 'Visible 26.3 entities have no geometry')
+assert.equal(thrownTypes.length, 0, '26.3 entity renderer threw while constructing geometry')
 for (const name of ['salmon', 'cod', 'tropical_fish', 'pufferfish', 'bee', 'fox', 'bat', 'mooshroom']) {
   assert(!fallbackTypes.includes(name), 'Common world mob fell back to magenta: ' + name)
 }
