@@ -27,6 +27,8 @@ jobs:
           PRISMARINE_VIEWER_TARGET_VERSIONS: '26.3'
       - name: Validate Minecraft Java 26.3
         run: npm run verify:mc26
+      - name: Verify Minecraft 26.3 entity textures, meshes and socket initialization
+        run: npm run verify:entities
       - name: Check code style
         run: npm run lint
       - name: Check package contents
