@@ -24,7 +24,33 @@ const aliases = {
   'entity/blaze': 'entity/blaze/blaze',
   'entity/endermite': 'entity/endermite/endermite',
   'entity/experience_orb': 'entity/experience/experience_orb',
-  'entity/boat/acacia': 'entity/boat/acacia'
+  'entity/boat/acacia': 'entity/boat/acacia',
+  'entity/armorstand/wood': 'entity/armorstand/armorstand',
+  'entity/turtle/big_sea_turtle': 'entity/turtle/turtle',
+  'entity/llama/creamy': 'entity/llama/llama_creamy',
+  'entity/llama/spit': 'entity/llama/llama_spit',
+  'entity/fox/snow_fox': 'entity/fox/fox_snow',
+  'entity/cat/white': 'entity/cat/cat_white',
+  'entity/cat/tuxedo': 'entity/cat/cat_black',
+  'entity/cat/tuxedo_tame': 'entity/cat/cat_black',
+  'entity/cat/red': 'entity/cat/cat_red',
+  'entity/cat/siamese': 'entity/cat/cat_siamese',
+  'entity/cat/british_shorthair': 'entity/cat/cat_british_shorthair',
+  'entity/cat/calico': 'entity/cat/cat_calico',
+  'entity/cat/persian': 'entity/cat/cat_persian',
+  'entity/cat/ragdoll': 'entity/cat/cat_ragdoll',
+  'entity/cat/tabby': 'entity/cat/cat_tabby',
+  'entity/cat/jellie': 'entity/cat/cat_jellie',
+  'entity/cat/all_black': 'entity/cat/cat_all_black',
+  'entity/panda/lazy_panda': 'entity/panda/panda_lazy',
+  'entity/panda/worried_panda': 'entity/panda/panda_worried',
+  'entity/panda/playful_panda': 'entity/panda/panda_playful',
+  'entity/panda/brown_panda': 'entity/panda/panda_brown',
+  'entity/panda/weak_panda': 'entity/panda/panda_weak',
+  'entity/panda/aggressive_panda': 'entity/panda/panda_aggressive',
+  'entity/rabbit/white_splotched': 'entity/rabbit/rabbit_white_splotched',
+  'entity/rabbit/salt': 'entity/rabbit/rabbit_salt',
+  'entity/rabbit/toast': 'entity/rabbit/rabbit_toast'
 }
 
 function walkImages (directory, prefix, output) {
@@ -68,6 +94,27 @@ function resolveTexture (source, available) {
 }
 
 function findDefaultTexture (name, available) {
+  if (name === 'cat' && available.has('entity/cat/cat_white')) {
+    return 'entity/cat/cat_white'
+  }
+  if (name === 'armor_stand' && available.has('entity/armorstand/armorstand')) {
+    return 'entity/armorstand/armorstand'
+  }
+  if (name === 'turtle' && available.has('entity/turtle/turtle')) {
+    return 'entity/turtle/turtle'
+  }
+  if (name === 'mooshroom' && available.has('entity/cow/mooshroom_red')) {
+    return 'entity/cow/mooshroom_red'
+  }
+  if (name === 'chicken' && available.has('entity/chicken/chicken_temperate')) {
+    return 'entity/chicken/chicken_temperate'
+  }
+  if (name === 'pig' && available.has('entity/pig/pig_temperate')) {
+    return 'entity/pig/pig_temperate'
+  }
+  if (name === 'cow' && available.has('entity/cow/cow_temperate')) {
+    return 'entity/cow/cow_temperate'
+  }
   if (name === 'player' || name === 'player_slim') {
     const key = name === 'player_slim' ? 'entity/player/slim/alex' : 'entity/player/wide/steve'
     return available.has(key) ? key : null

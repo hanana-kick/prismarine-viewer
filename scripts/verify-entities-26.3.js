@@ -41,6 +41,8 @@ for (const [name, original, expected] of [
   ['pig', 'textures/entity/pig/pig', 'pig/pig_temperate.png'],
   ['chicken', 'textures/entity/chicken', 'chicken/chicken_temperate.png'],
   ['creeper', 'textures/entity/creeper/creeper', 'creeper/creeper.png'],
+  ['armor_stand', 'textures/entity/armorstand/wood', 'armorstand/armorstand.png'],
+  ['turtle', 'textures/entity/turtle/big_sea_turtle', 'turtle/turtle.png'],
   ['zombie', 'textures/entity/zombie/zombie', 'zombie/zombie.png']
 ]) {
   const resolved = Entity.textureFor('26.3', name, 'default', original)
@@ -50,6 +52,7 @@ for (const [name, original, expected] of [
 const names = [
   'player', 'player_slim', 'cow', 'pig', 'chicken', 'creeper',
   'zombie', 'skeleton', 'villager', 'sheep', 'wolf',
+  'armor_stand', 'turtle', 'cat', 'llama',
   'allay', 'armadillo', 'bogged', 'breeze', 'copper_golem',
   'creaking', 'warden'
 ]
