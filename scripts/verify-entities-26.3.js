@@ -211,7 +211,18 @@ async function initialPositionTest () {
   }
 }
 
-initialPositionTest().catch(err => {
-  console.error(err)
-  process.exitCode = 1
-})
+function sulfurUvTest () {
+  const texture = 'textures/26.3/entity/sulfur_cube/sulfur_cube_inner.png'
+  const offset = Entity.textureUvOffsets[texture]
+  assert(offset && offset.v > 0.25, 'sulfur_cube UVs must be offset to the opaque atlas rows')
+  const scale = Entity.uvScaleForImage({ width: 64, height: 32 }, { width: 128, height: 128 })
+  assert.equal(scale.sy, 0.25, 'sulfur_cube UVs must be scaled into the 64x32 sub-rectangle')
+  console.log('Sulfur cube UV atlas offset is configured')
+}
+
+initialPositionTest()
+  .then(sulfurUvTest)
+  .catch(err => {
+    console.error(err)
+    process.exitCode = 1
+  })

@@ -1,3 +1,6 @@
+### 1.33.0-mc26.3.5
+* Map sulfur cube rig UVs onto the opaque sub-rectangle of its 128x128 atlas.
+
 ### 1.33.0-mc26.3.4
 * Fix east/west face V offsets so projectile rigs sample the correct texture rows.
 

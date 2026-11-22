@@ -69,6 +69,12 @@ const simpleEntities = {
   leash_knot: { shape: 'sphere', width: 0.375, height: 0.5 }
 }
 
+// Some 26.3 textures keep the legacy rig layout in a sub-rectangle of a larger atlas.
+// sulfur_cube's 64x32 slime UVs sit at y=36..67 inside a 128x128 sheet.
+const textureUvOffsets = {
+  'textures/26.3/entity/sulfur_cube/sulfur_cube_inner.png': { u: 0, v: 36 / 128 }
+}
+
 function makeSimpleEntity (type, spec) {
   const width = spec.width
   const height = spec.height
@@ -273,12 +279,12 @@ function uvScaleForImage (declared, image) {
   }
 }
 
-function scaleGeometryUvs (geometry, sx, sy) {
-  if (sx === 1 && sy === 1) return
+function transformUvs (geometry, sx, sy, du = 0, dv = 0) {
+  if (sx === 1 && sy === 1 && du === 0 && dv === 0) return
   const uv = geometry.attributes.uv
   if (!uv) return
   for (let i = 0; i < uv.count; i++) {
-    uv.setXY(i, uv.getX(i) * sx, uv.getY(i) * sy)
+    uv.setXY(i, uv.getX(i) * sx + du, uv.getY(i) * sy + dv)
   }
   uv.needsUpdate = true
 }
@@ -410,8 +416,13 @@ function getMesh (texture, jsonModel, override) {
   let uvScaled = false
   function textureLoaded (loaded, prepared = false) {
     if (!uvScaled) {
-      const scale = prepared ? { sx: 1, sy: 1 } : uvScaleForImage(declaredTexture, loaded.image)
-      scaleGeometryUvs(geometry, scale.sx, scale.sy)
+      const scale = prepared
+        ? { sx: 1, sy: 1, u: 0, v: 0 }
+        : {
+            ...uvScaleForImage(declaredTexture, loaded.image),
+            ...(textureUvOffsets[texture] ?? { u: 0, v: 0 })
+          }
+      transformUvs(geometry, scale.sx, scale.sy, scale.u, scale.v)
       uvScaled = true
     }
     applyTexture(material, loaded)
@@ -471,3 +482,4 @@ module.exports.selectRig = selectRig
 module.exports.nonMeshEntities = nonMeshEntities
 module.exports.simpleEntities = simpleEntities
 module.exports.uvScaleForImage = uvScaleForImage
+module.exports.textureUvOffsets = textureUvOffsets
