@@ -140,6 +140,15 @@ for (const name of ['salmon', 'cod', 'tropical_fish', 'pufferfish', 'bee', 'fox'
 }
 console.log(`Minecraft Java 26.3: validated ${names.length} player/mob rigs and ${Object.keys(manifest.textures).length} mapped textures`)
 
+const legacyRig = { width: 64, height: 32 }
+assert.deepEqual(Entity.uvScaleForImage(legacyRig, { width: 64, height: 64 }), { sx: 1, sy: 0.5 },
+  'A 64x64 zombie texture on a 64x32 rig needs half-height UVs')
+assert.deepEqual(Entity.uvScaleForImage(legacyRig, { width: 64, height: 32 }), { sx: 1, sy: 1 },
+  'A matching skeleton texture must not be rescaled')
+assert.deepEqual(Entity.uvScaleForImage({ width: 128, height: 128 }, { width: 64, height: 64 }), { sx: 1, sy: 1 },
+  'An already downscaled texture must not be stretched')
+console.log('Legacy rig UVs are rescaled for larger 26.3 textures')
+
 async function initialPositionTest () {
   const bot = new EventEmitter()
   bot.username = 'viewer-test-bot'

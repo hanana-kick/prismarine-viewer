@@ -259,6 +259,28 @@ function applyTexture (material, texture) {
   material.needsUpdate = true
 }
 
+// Legacy Bedrock rigs declare 64x32/64x64 UV space, while some 26.3 textures keep the same
+// layout on a larger canvas (e.g. zombie is 64x64 for a 64x32 rig). Sampling them with the
+// declared height folds the body into the wrong rows and the mob renders as a crumpled ball.
+// Shrink UVs only when the real texture is larger; a smaller texture is already a scaled copy.
+function uvScaleForImage (declared, image) {
+  if (!declared || !image || !image.width || !image.height) return { sx: 1, sy: 1 }
+  return {
+    sx: Math.min(1, declared.width / image.width),
+    sy: Math.min(1, declared.height / image.height)
+  }
+}
+
+function scaleGeometryUvs (geometry, sx, sy) {
+  if (sx === 1 && sy === 1) return
+  const uv = geometry.attributes.uv
+  if (!uv) return
+  for (let i = 0; i < uv.count; i++) {
+    uv.setXY(i, uv.getX(i) * sx, uv.getY(i) * sy)
+  }
+  uv.needsUpdate = true
+}
+
 // [x, y, dx, dy, w, h]: the w*h block at (x, y) is copied to (x + dx, y + dy), mirrored horizontally
 const legacySkinCopies = [
   [4, 16, 16, 32, 4, 4], [8, 16, 16, 32, 4, 4], [0, 20, 24, 32, 4, 12], [4, 20, 16, 32, 4, 12], [8, 20, 8, 32, 4, 12], [12, 20, 16, 32, 4, 12],
@@ -379,17 +401,30 @@ function getMesh (texture, jsonModel, override) {
   // so the player's left limbs end up on their left; the face UVs below are laid out for this.
   mesh.scale.set(-1 / 16, 1 / 16, 1 / 16)
 
+  const declaredTexture = {
+    width: jsonModel.texturewidth || 64,
+    height: jsonModel.textureheight || 64
+  }
+  let uvScaled = false
+  function textureLoaded (loaded, prepared = false) {
+    if (!uvScaled) {
+      const scale = prepared ? { sx: 1, sy: 1 } : uvScaleForImage(declaredTexture, loaded.image)
+      scaleGeometryUvs(geometry, scale.sx, scale.sy)
+      uvScaled = true
+    }
+    applyTexture(material, loaded)
+  }
   // Textures load the first time the mesh is drawn, so an entity the camera
   // never sees (a player across the server) costs no fetch.
   mesh.onBeforeRender = () => {
     mesh.onBeforeRender = () => {}
     if (texture) {
-      loadTexture(texture, texture => {
-        applyTexture(material, texture)
-        if (override) loadTexture(override, texture => applyTexture(material, prepareSkin(texture)))
+      loadTexture(texture, loaded => {
+        textureLoaded(loaded)
+        if (override) loadTexture(override, skin => textureLoaded(prepareSkin(skin), true))
       })
     } else {
-      if (override) loadTexture(override, texture => applyTexture(material, prepareSkin(texture)))
+      if (override) loadTexture(override, skin => textureLoaded(prepareSkin(skin), true))
     }
   }
 
@@ -430,3 +465,4 @@ module.exports.compatibleEntityRigs = compatibleEntityRigs
 module.exports.selectRig = selectRig
 module.exports.nonMeshEntities = nonMeshEntities
 module.exports.simpleEntities = simpleEntities
+module.exports.uvScaleForImage = uvScaleForImage

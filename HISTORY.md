@@ -1,3 +1,6 @@
+### 1.33.0-mc26.3.1
+* Scale legacy rig UVs when a 26.3 texture uses a larger canvas (fixes the crumpled zombie).
+
 ### 1.33.0
 * [Fix headless (#436)](https://github.com/PrismarineJS/prismarine-viewer/commit/1bcd495ba8ab067c163d7653609276b27d8c41e9) (thanks @caenopy)
 
