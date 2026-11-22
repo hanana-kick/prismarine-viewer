@@ -75,6 +75,9 @@ const textureUvOffsets = {
   'textures/26.3/entity/sulfur_cube/sulfur_cube_inner.png': { u: 0, v: 36 / 128 }
 }
 
+// Rig parts for alternate states of the same mob; the ordinary entity only needs `default`.
+const alternateStateParts = new Set(['charged', 'sheared'])
+
 function makeSimpleEntity (type, spec) {
   const width = spec.width
   const height = spec.height
@@ -459,9 +462,8 @@ class Entity {
 
     this.mesh = new THREE.Object3D()
     for (const [name, jsonModel] of Object.entries(e.geometry)) {
-      // `charged` is an alternate creeper state, not an overlay for every creeper.
-      // Rendering it unconditionally paints the blue charged armor on normal mobs.
-      if (name === 'charged') continue
+      // Alternate states (charged creeper, sheared sheep) are not overlays for ordinary mobs.
+      if (alternateStateParts.has(name)) continue
       const originalTexture = e.textures[name] || (name === 'default' ? Object.values(e.textures)[0] : null)
       const texture = textureFor(version, type, name, originalTexture)
       if (!texture && !textures[name]) continue

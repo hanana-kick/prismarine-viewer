@@ -151,9 +151,11 @@ console.log('Legacy rig UVs are rescaled for larger 26.3 textures')
 
 const creeper = new Entity('26.3', 'creeper', new THREE.Scene())
 assert.equal(creeper.mesh.children.length, 1, 'A normal creeper must not render the charged overlay')
+const sheep = new Entity('26.3', 'sheep', new THREE.Scene())
+assert.equal(sheep.mesh.children.length, 1, 'A normal sheep must not render the sheared overlay')
 const stray = new Entity('26.3', 'stray', new THREE.Scene())
 assert.equal(stray.mesh.children.length, 2, 'Legitimate layered rigs must keep their overlay')
-console.log('Alternate creeper state is not rendered on ordinary mobs')
+console.log('Alternate states are not rendered on ordinary mobs')
 
 for (const name of ['arrow', 'spectral_arrow', 'trident']) {
   const entity = new Entity('26.3', name, new THREE.Scene())

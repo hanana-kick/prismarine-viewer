@@ -1,3 +1,6 @@
+### 1.33.0-mc26.3.6
+* Do not render the sheared sheep overlay on ordinary sheep.
+
 ### 1.33.0-mc26.3.5
 * Map sulfur cube rig UVs onto the opaque sub-rectangle of its 128x128 atlas.
 
