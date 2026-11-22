@@ -155,6 +155,18 @@ const stray = new Entity('26.3', 'stray', new THREE.Scene())
 assert.equal(stray.mesh.children.length, 2, 'Legitimate layered rigs must keep their overlay')
 console.log('Alternate creeper state is not rendered on ordinary mobs')
 
+for (const name of ['arrow', 'spectral_arrow', 'trident']) {
+  const entity = new Entity('26.3', name, new THREE.Scene())
+  entity.mesh.traverse(mesh => {
+    const uv = mesh.geometry?.attributes?.uv
+    if (!uv) return
+    for (let i = 0; i < uv.count; i++) {
+      assert(Number.isFinite(uv.getX(i)) && Number.isFinite(uv.getY(i)), `${name} has invalid per-face UVs`)
+    }
+  })
+}
+console.log('Per-face Bedrock UVs produce finite texture coordinates')
+
 async function initialPositionTest () {
   const bot = new EventEmitter()
   bot.username = 'viewer-test-bot'

@@ -216,12 +216,14 @@ function addCube (attr, boneId, bone, cube, texWidth = 64, texHeight = 64) {
     cubeRotation.y = -cube.rotation[1] * Math.PI / 180
     cubeRotation.z = -cube.rotation[2] * Math.PI / 180
   }
-  for (const { dir, corners, u0, v0, u1, v1 } of Object.values(elemFaces)) {
+  for (const [face, { dir, corners, u0, v0, u1, v1 }] of Object.entries(elemFaces)) {
+    // Bedrock rigs may put UVs on individual faces instead of a single [u, v] pair.
+    const faceUv = Array.isArray(cube.uv) ? cube.uv : (cube.uv?.[face]?.uv ?? [0, 0])
     const ndx = Math.floor(attr.positions.length / 3)
 
     for (const pos of corners) {
-      const u = (cube.uv[0] + dot(pos[3] ? u1 : u0, cube.size)) / texWidth
-      const v = (cube.uv[1] + dot(pos[4] ? v1 : v0, cube.size)) / texHeight
+      const u = (faceUv[0] + dot(pos[3] ? u1 : u0, cube.size)) / texWidth
+      const v = (faceUv[1] + dot(pos[4] ? v1 : v0, cube.size)) / texHeight
 
       const inflate = cube.inflate ? cube.inflate : 0
       let vecPos = new THREE.Vector3(

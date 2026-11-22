@@ -1,3 +1,6 @@
+### 1.33.0-mc26.3.3
+* Support per-face Bedrock UVs so projectiles such as arrows render with finite texture coordinates.
+
 ### 1.33.0-mc26.3.2
 * Do not render the charged creeper overlay on ordinary creepers.
 
