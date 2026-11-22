@@ -446,6 +446,9 @@ class Entity {
 
     this.mesh = new THREE.Object3D()
     for (const [name, jsonModel] of Object.entries(e.geometry)) {
+      // `charged` is an alternate creeper state, not an overlay for every creeper.
+      // Rendering it unconditionally paints the blue charged armor on normal mobs.
+      if (name === 'charged') continue
       const originalTexture = e.textures[name] || (name === 'default' ? Object.values(e.textures)[0] : null)
       const texture = textureFor(version, type, name, originalTexture)
       if (!texture && !textures[name]) continue

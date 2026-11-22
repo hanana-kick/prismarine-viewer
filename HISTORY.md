@@ -1,3 +1,6 @@
+### 1.33.0-mc26.3.2
+* Do not render the charged creeper overlay on ordinary creepers.
+
 ### 1.33.0-mc26.3.1
 * Scale legacy rig UVs when a 26.3 texture uses a larger canvas (fixes the crumpled zombie).
 

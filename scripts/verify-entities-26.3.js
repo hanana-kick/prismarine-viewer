@@ -149,6 +149,12 @@ assert.deepEqual(Entity.uvScaleForImage({ width: 128, height: 128 }, { width: 64
   'An already downscaled texture must not be stretched')
 console.log('Legacy rig UVs are rescaled for larger 26.3 textures')
 
+const creeper = new Entity('26.3', 'creeper', new THREE.Scene())
+assert.equal(creeper.mesh.children.length, 1, 'A normal creeper must not render the charged overlay')
+const stray = new Entity('26.3', 'stray', new THREE.Scene())
+assert.equal(stray.mesh.children.length, 2, 'Legitimate layered rigs must keep their overlay')
+console.log('Alternate creeper state is not rendered on ordinary mobs')
+
 async function initialPositionTest () {
   const bot = new EventEmitter()
   bot.username = 'viewer-test-bot'
