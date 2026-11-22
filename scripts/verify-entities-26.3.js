@@ -167,6 +167,16 @@ for (const name of ['arrow', 'spectral_arrow', 'trident']) {
 }
 console.log('Per-face Bedrock UVs produce finite texture coordinates')
 
+const arrow = new Entity('26.3', 'arrow', new THREE.Scene())
+let minArrowV = 1
+arrow.mesh.traverse(mesh => {
+  const uv = mesh.geometry?.attributes?.uv
+  if (!uv) return
+  for (let i = 0; i < uv.count; i++) minArrowV = Math.min(minArrowV, uv.getY(i))
+})
+assert(minArrowV < 0.1, 'Arrow shaft UVs must sample the top texture strip')
+console.log('Arrow shaft UVs land on the visible texture rows')
+
 async function initialPositionTest () {
   const bot = new EventEmitter()
   bot.username = 'viewer-test-bot'

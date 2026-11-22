@@ -1,6 +1,6 @@
 {
   "name": "prismarine-viewer",
-  "version": "1.33.0-mc26.3.3",
+  "version": "1.33.0-mc26.3.4",
   "description": "Prismarine Viewer with Minecraft Java 26.3 (protocol 777) support",
   "main": "index.js",
   "scripts": {

@@ -1,3 +1,6 @@
+### 1.33.0-mc26.3.4
+* Fix east/west face V offsets so projectile rigs sample the correct texture rows.
+
 ### 1.33.0-mc26.3.3
 * Support per-face Bedrock UVs so projectiles such as arrows render with finite texture coordinates.
 
