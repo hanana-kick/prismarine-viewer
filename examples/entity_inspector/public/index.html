@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Prismarine Viewer — 26.3 entity inspector</title>
+    <style type="text/css">
+      html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; }
+      body { font: 12px/1.45 monospace; color: #dbe3ec; background: #14181d; }
+      canvas { display: block; }
+      #panel {
+        position: fixed; top: 0; left: 0; bottom: 0; width: 268px; padding: 10px 12px;
+        overflow-y: auto; background: rgba(20, 24, 29, 0.92); border-right: 1px solid #2c343d;
+      }
+      #panel h1 { font-size: 13px; margin: 0 0 8px; letter-spacing: 0.04em; text-transform: uppercase; color: #8fa2b5; }
+      #panel h2 { font-size: 11px; margin: 14px 0 4px; color: #8fa2b5; text-transform: uppercase; }
+      #entity-name { font-size: 16px; color: #ffffff; word-break: break-all; }
+      input[type=search], select { width: 100%; box-sizing: border-box; background: #1d242b; color: #dbe3ec; border: 1px solid #2c343d; padding: 4px; font: inherit; }
+      label { display: block; white-space: nowrap; }
+      .row { display: flex; gap: 6px; margin: 4px 0; }
+      .row button { flex: 1; background: #24303b; color: #dbe3ec; border: 1px solid #2c343d; padding: 4px; font: inherit; cursor: pointer; }
+      dl { margin: 0; }
+      dt { color: #7d8b9a; margin-top: 6px; }
+      dd { margin: 0; white-space: pre-wrap; word-break: break-all; color: #ffffff; }
+      #field-warnings { color: #ffcc66; }
+      .views label { display: inline-block; margin-right: 6px; white-space: nowrap; }
+    </style>
+  </head>
+  <body>
+    <div id="panel">
+      <h1>26.3 entity inspector</h1>
+      <div id="entity-name">—</div>
+      <div class="row">
+        <button id="prev" type="button">◀ prev</button>
+        <button id="next" type="button">next ▶</button>
+      </div>
+      <input id="entity-search" type="search" placeholder="filter…" autocomplete="off">
+      <select id="entity-select" size="10"></select>
+      <input id="item-name" type="search" value="diamond_sword" placeholder="item name (entity 'item')">
+
+      <h2>Resolved</h2>
+      <dl>
+        <dt>rig (source)</dt><dd id="field-rig">—</dd>
+        <dt>hitbox w × h</dt><dd id="field-hitbox">—</dd>
+        <dt>rendered w × h × d</dt><dd id="field-rendered">—</dd>
+        <dt>part textures</dt><dd id="field-texture">—</dd>
+        <dt>diagnostics</dt><dd id="field-warnings">—</dd>
+      </dl>
+
+      <h2>Parts (<span id="part-count">0</span>)</h2>
+      <div class="row"><button id="all-parts" type="button">show all parts</button></div>
+      <div id="part-list"></div>
+
+      <h2>Overlays</h2>
+      <label><input id="toggle-texture" type="checkbox" checked> texture</label>
+      <label><input id="toggle-wireframe" type="checkbox"> wireframe</label>
+      <label><input id="toggle-hitbox" type="checkbox" checked> hitbox (cyan)</label>
+      <label><input id="toggle-meshbox" type="checkbox" checked> mesh bounds (amber)</label>
+      <label><input id="toggle-bones" type="checkbox"> bone pivots</label>
+      <label><input id="toggle-grid" type="checkbox" checked> ground grid</label>
+      <label><input id="toggle-axes" type="checkbox"> axes</label>
+
+      <h2>Camera</h2>
+      <div class="views">
+        <label><input type="radio" name="camera" value="iso" checked> iso</label>
+        <label><input type="radio" name="camera" value="front"> front</label>
+        <label><input type="radio" name="camera" value="back"> back</label>
+        <label><input type="radio" name="camera" value="left"> left</label>
+        <label><input type="radio" name="camera" value="right"> right</label>
+        <label><input type="radio" name="camera" value="top"> top</label>
+      </div>
+      <label>scale <span id="scale-value">1</span></label>
+      <input id="scale" type="range" min="0.2" max="4" step="0.2" value="1">
+      <label>yaw <span id="yaw-value">0°</span></label>
+      <input id="yaw" type="range" min="0" max="315" step="45" value="0">
+      <p>← / → steps through entities. Headless runs drive <code>window.__inspector</code>.</p>
+    </div>
+    <script type="text/javascript" src="inspector.js"></script>
+  </body>
+</html>

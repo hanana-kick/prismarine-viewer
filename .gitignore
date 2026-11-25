@@ -14,3 +14,5 @@ examples/standalone/public/blocksStates/
 *.DS_Store
 test/server_*
 .cache/
+/test/entity-gallery/
+examples/entity_inspector/public/inspector.js*

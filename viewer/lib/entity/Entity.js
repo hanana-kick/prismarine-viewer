@@ -482,6 +482,9 @@ class Entity {
       const texture = textureFor(version, type, name, originalTexture)
       if (!texture && !textures[name]) continue
       const mesh = getMesh(texture, jsonModel, textures[name])
+      // The entity inspector and per-part screenshots address parts by name.
+      mesh.name = name
+      mesh.userData.partName = name
       /* const skeletonHelper = new THREE.SkeletonHelper( mesh )
       skeletonHelper.material.linewidth = 2
       scene.add( skeletonHelper ) */
