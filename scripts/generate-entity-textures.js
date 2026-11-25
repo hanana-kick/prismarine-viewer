@@ -49,6 +49,14 @@ const aliases = {
   'entity/panda/weak_panda': 'entity/panda/panda_weak',
   'entity/panda/aggressive_panda': 'entity/panda/panda_aggressive',
   'entity/rabbit/white_splotched': 'entity/rabbit/rabbit_white_splotched',
+  'entity/rabbit/brown': 'entity/rabbit/rabbit_brown',
+  'entity/rabbit/white': 'entity/rabbit/rabbit_white',
+  'entity/rabbit/black': 'entity/rabbit/rabbit_black',
+  'entity/rabbit/gold': 'entity/rabbit/rabbit_gold',
+  'entity/rabbit/caerbannog': 'entity/rabbit/rabbit_caerbannog',
+  'entity/cat/black': 'entity/cat/cat_all_black',
+  'entity/horse/horse_skeleton': 'entity/horse/horse_skeleton',
+  'entity/horse/horse_zombie': 'entity/horse/horse_zombie',
   'entity/rabbit/salt': 'entity/rabbit/rabbit_salt',
   'entity/rabbit/toast': 'entity/rabbit/rabbit_toast'
 }
@@ -102,6 +110,24 @@ function findDefaultTexture (name, available) {
   }
   if (name === 'turtle' && available.has('entity/turtle/turtle')) {
     return 'entity/turtle/turtle'
+  }
+  if (name === 'donkey' && available.has('entity/horse/donkey')) {
+    return 'entity/horse/donkey'
+  }
+  if (name === 'mule' && available.has('entity/horse/mule')) {
+    return 'entity/horse/mule'
+  }
+  if (name === 'skeleton_horse' && available.has('entity/horse/horse_skeleton')) {
+    return 'entity/horse/horse_skeleton'
+  }
+  if (name === 'zombie_horse' && available.has('entity/horse/horse_zombie')) {
+    return 'entity/horse/horse_zombie'
+  }
+  if (name === 'ocelot' && available.has('entity/cat/ocelot')) {
+    return 'entity/cat/ocelot'
+  }
+  if (name === 'happy_ghast' && available.has('entity/ghast/happy_ghast')) {
+    return 'entity/ghast/happy_ghast'
   }
   if (name === 'mooshroom' && available.has('entity/cow/mooshroom_red')) {
     return 'entity/cow/mooshroom_red'

@@ -66,7 +66,9 @@ const simpleEntities = {
   firework_rocket: { shape: 'sphere', width: 0.25, height: 0.25 },
   splash_potion: { shape: 'sphere', width: 0.25, height: 0.25 },
   lingering_potion: { shape: 'sphere', width: 0.25, height: 0.25 },
-  leash_knot: { shape: 'sphere', width: 0.375, height: 0.5 }
+  leash_knot: { shape: 'sphere', width: 0.375, height: 0.5 },
+  lightning_bolt: { shape: 'box', width: 0.35, height: 6 },
+  area_effect_cloud: { shape: 'sphere', width: 1.5, height: 1.5 }
 }
 
 // Some 26.3 textures keep the legacy rig layout in a sub-rectangle of a larger atlas.
@@ -110,8 +112,19 @@ function makeSimpleEntity (type, spec) {
 // These are protocol helpers or particle/display metadata that have no
 // meaningful geometry without a dedicated renderer. An invisible entity is
 // preferable to pretending a 6x6 particle cloud is a magenta solid cube.
+// Vanilla renderers apply extra scale factors on top of the baked 1/16 model scale:
+// ghast/happy_ghast use MeshTransformer.scaling(4.5F)/(4.0F) in their layers; WitherBossRenderer scales 2.0F;
+// ElderGuardian uses ELDER_GUARDIAN_SCALE (2.35F). Without these the models are the wrong size.
+const entityScales = {
+  ghast: 4.5,
+  happy_ghast: 4.0,
+  wither: 2.0,
+  elder_guardian: 2.35,
+  giant: 6
+}
+
 const nonMeshEntities = new Set([
-  'area_effect_cloud', 'interaction', 'marker', 'lightning_bolt',
+  'interaction', 'marker',
   'text_display', 'item_display'
 ])
 
@@ -241,8 +254,9 @@ function addCube (attr, boneId, bone, cube, texWidth = 64, texHeight = 64) {
         cube.origin[2] + pos[2] * cube.size[2] + (pos[2] ? inflate : -inflate)
       )
 
-      vecPos = vecPos.applyEuler(cubeRotation)
+      // Rotate the cube about the bone's pivot, not the model origin — vanilla math.
       vecPos = vecPos.sub(bone.position)
+      vecPos = vecPos.applyEuler(cubeRotation)
       vecPos = vecPos.applyEuler(bone.rotation)
       vecPos = vecPos.add(bone.position)
 
@@ -473,7 +487,7 @@ class Entity {
       scene.add( skeletonHelper ) */
       this.mesh.add(mesh)
     }
-    if (type === 'giant') this.mesh.scale.setScalar(6)
+    if (entityScales[type] !== undefined) this.mesh.scale.setScalar(entityScales[type])
   }
 }
 
