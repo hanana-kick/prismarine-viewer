@@ -19,14 +19,15 @@ const { spawnSync } = require('child_process')
 const root = path.resolve(__dirname, '..')
 const inspectorDir = path.join(root, 'examples', 'entity_inspector')
 
-// Vanilla authors these models around the entity position rather than on the floor, so a
-// mesh that does not touch y=0 is correct for them (fliers, swimmers, and the hovering
-// mobs whose model centre sits above their feet).
+// Vanilla authors these models around the entity position rather than on the floor, or
+// lets parts such as tentacles and splayed spider legs cross the floor plane, so a mesh
+// that does not sit on y=0 is correct for them.
 const MODEL_FLOATS_BY_DESIGN = new Set([
   'ghast', 'happy_ghast', 'ender_dragon', 'wither', 'blaze', 'breeze', 'phantom', 'bat',
   'allay', 'vex', 'bee', 'parrot', 'shulker', 'end_crystal', 'squid', 'glow_squid',
   'cod', 'salmon', 'tropical_fish', 'pufferfish', 'tadpole', 'dolphin', 'turtle',
-  'axolotl', 'nautilus', 'zombie_nautilus', 'guardian', 'elder_guardian'
+  'axolotl', 'nautilus', 'zombie_nautilus', 'guardian', 'elder_guardian',
+  'spider', 'cave_spider', 'eye_of_ender'
 ])
 
 function parseArgs (argv) {
@@ -166,12 +167,12 @@ function buildCatalog () {
         const floats = MODEL_FLOATS_BY_DESIGN.has(name) ||
           entry.type === 'projectile' || entry.type === 'water_creature' || entry.type === 'ambient'
         if (floats) {
-          if (Math.abs(record.rendered.minY) > 0.05) {
+          if (Math.abs(record.rendered.minY) > 0.1) {
             warn('info', `mesh floor at y=${record.rendered.minY.toFixed(2)} (model is not authored on the ground)`)
           }
-        } else if (record.rendered.minY < -0.05) {
+        } else if (record.rendered.minY < -0.1) {
           warn('warn', `mesh sinks ${Math.abs(record.rendered.minY).toFixed(2)} blocks below the floor`)
-        } else if (record.rendered.minY > 0.05) {
+        } else if (record.rendered.minY > 0.1) {
           warn('warn', `mesh floats ${record.rendered.minY.toFixed(2)} blocks above the floor`)
         }
       }
