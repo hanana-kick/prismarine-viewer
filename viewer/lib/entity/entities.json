@@ -13532,7 +13532,11 @@
     "identifier": "minecraft:pufferfish",
     "min_engine_version": "1.8.0",
     "materials": {"default": "pufferfish"},
-    "textures": {"default": "textures/entity/fish/pufferfish"},
+    "textures": {
+      "default": "textures/entity/fish/pufferfish",
+      "mid": "textures/entity/fish/pufferfish",
+      "large": "textures/entity/fish/pufferfish"
+    },
     "geometry": {
       "default": {
         "visible_bounds_width": 0.5,
@@ -15924,7 +15928,10 @@
   "slime": {
     "identifier": "minecraft:slime",
     "materials": {"default": "slime", "outer": "slime_outer"},
-    "textures": {"default": "textures/entity/slime/slime"},
+    "textures": {
+      "default": "textures/entity/slime/slime",
+      "armor": "textures/entity/slime/slime"
+    },
     "geometry": {
       "default": {
         "visible_bounds_width": 5,
