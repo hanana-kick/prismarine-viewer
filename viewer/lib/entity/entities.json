@@ -608,67 +608,74 @@
         "bones": [
           {
             "name": "head",
-            "pivot": [0, 24, 0],
-            "cubes": [{"origin": [-3, 21, -3], "size": [6, 6, 6], "uv": [0, 0]}]
+            "pivot": [0, 7, 0],
+            "cubes": [{"origin": [0, 7, 0], "size": [4, 3, 2], "uv": [0, 7]}]
           },
           {
-            "name": "rightEar",
-            "pivot": [0, 24, 0],
+            "name": "right_ear",
+            "pivot": [0, 7, 0],
             "cubes": [
-              {"origin": [-4, 26, -2], "size": [3, 4, 1], "uv": [24, 0]}
+              {"origin": [-1.5, 8, 0], "size": [3, 5, 0.05], "uv": [1, 15]}
             ],
             "parent": "head"
           },
           {
-            "name": "leftEar",
+            "name": "left_ear",
             "mirror": true,
-            "pivot": [0, 24, 0],
+            "pivot": [0, 7, 0],
             "cubes": [
-              {"origin": [1, 26, -2], "size": [3, 4, 1], "uv": [24, 0]}
+              {"origin": [-1.5, 8, 0], "size": [3, 5, 0.05], "uv": [8, 15]}
             ],
             "parent": "head"
           },
           {
             "name": "body",
-            "pivot": [0, 24, 0],
+            "pivot": [0, 7, 0],
             "cubes": [
-              {"origin": [-3, 8, -3], "size": [6, 12, 6], "uv": [0, 16]},
-              {"origin": [-5, -8, 0], "size": [10, 16, 1], "uv": [0, 34]}
+              {"origin": [0, 2, 0], "size": [3, 5, 2], "uv": [0, 0]}
             ]
           },
           {
-            "name": "rightWing",
-            "pivot": [0, 24, 0],
+            "name": "feet",
+            "pivot": [0, 2, 0],
             "cubes": [
-              {"origin": [-12, 7, 1.5], "size": [10, 16, 1], "uv": [42, 0]}
+              {"origin": [-1.5, 0, 0], "size": [3, 2, 0.05], "uv": [16, 16]}
             ],
             "parent": "body"
           },
           {
-            "name": "rightWingTip",
-            "pivot": [-12, 23, 1.5],
+            "name": "right_wing",
+            "pivot": [-1.5, 7, 0],
             "cubes": [
-              {"origin": [-20, 10, 1.5], "size": [8, 12, 1], "uv": [24, 16]}
-            ],
-            "parent": "rightWing"
-          },
-          {
-            "name": "leftWing",
-            "mirror": true,
-            "pivot": [0, 24, 0],
-            "cubes": [
-              {"origin": [2, 7, 1.5], "size": [10, 16, 1], "uv": [42, 0]}
+              {"origin": [-3.5, 2, 0], "size": [2, 7, 0.05], "uv": [12, 0]}
             ],
             "parent": "body"
           },
           {
-            "name": "leftWingTip",
-            "mirror": true,
-            "pivot": [12, 23, 1.5],
+            "name": "right_wing_tip",
+            "pivot": [-3.5, 7, 0],
             "cubes": [
-              {"origin": [12, 10, 1.5], "size": [8, 12, 1], "uv": [24, 16]}
+              {"origin": [-3.5, 4, 0], "size": [6, 8, 0.05], "uv": [16, 0]}
             ],
-            "parent": "leftWing"
+            "parent": "right_wing"
+          },
+          {
+            "name": "left_wing",
+            "mirror": true,
+            "pivot": [1.5, 7, 0],
+            "cubes": [
+              {"origin": [1.5, 2, 0], "size": [2, 7, 0.05], "uv": [12, 7]}
+            ],
+            "parent": "body"
+          },
+          {
+            "name": "left_wing_tip",
+            "mirror": true,
+            "pivot": [3.5, 7, 0],
+            "cubes": [
+              {"origin": [3.5, 4, 0], "size": [6, 8, 0.05], "uv": [16, 8]}
+            ],
+            "parent": "left_wing"
           }
         ]
       }
@@ -2439,6 +2446,35 @@
     },
     "render_controllers": ["controller.render.cow"],
     "spawn_egg": {"texture": "spawn_egg", "texture_index": 1}
+  },
+  "copper_golem": {
+    "identifier": "minecraft:copper_golem",
+    "min_engine_version": "1.8.0",
+    "materials": {"default": "copper_golem"},
+    "textures": {"default": "textures/entity/copper_golem/copper_golem"},
+    "geometry": {
+      "default": {
+        "visible_bounds_width": 2,
+        "visible_bounds_height": 2,
+        "visible_bounds_offset": [0, 1, 0],
+        "texturewidth": 64,
+        "textureheight": 64,
+        "bones": [
+          {"name": "body", "pivot": [0, 19, 0], "cubes": [{"origin": [-4, 5, -3], "size": [8, 6, 6], "uv": [0, 15]}]},
+          {"name": "head", "parent": "body", "pivot": [0, 11, 0], "cubes": [
+            {"origin": [-4, 11, -5], "size": [8, 5, 10], "uv": [0, 0]},
+            {"origin": [-1, 10, -6], "size": [2, 3, 2], "uv": [56, 0]},
+            {"origin": [-1, 16, -1], "size": [2, 4, 2], "uv": [37, 8]},
+            {"origin": [-2, 20, -2], "size": [4, 4, 4], "uv": [37, 0]}
+          ]},
+          {"name": "right_arm", "parent": "body", "pivot": [-4, 11, 0], "cubes": [{"origin": [-7, 2, -2], "size": [3, 10, 4], "uv": [36, 16]}]},
+          {"name": "left_arm", "parent": "body", "pivot": [4, 11, 0], "mirror": true, "cubes": [{"origin": [4, 2, -2], "size": [3, 10, 4], "uv": [50, 16]}]},
+          {"name": "right_leg", "pivot": [-2, 5, 0], "cubes": [{"origin": [-4, 0, -2], "size": [4, 5, 4], "uv": [0, 27]}]},
+          {"name": "left_leg", "pivot": [2, 5, 0], "mirror": true, "cubes": [{"origin": [0, 0, -2], "size": [4, 5, 4], "uv": [16, 27]}]}
+        ]
+      }
+    },
+    "render_controllers": ["controller.render.copper_golem"]
   },
   "creeper": {
     "identifier": "minecraft:creeper",
@@ -18411,6 +18447,33 @@
     "render_controllers": ["controller.render.vex"],
     "spawn_egg": {"texture": "spawn_egg", "texture_index": 41}
   },
+  "allay": {
+    "identifier": "minecraft:allay",
+    "min_engine_version": "1.8.0",
+    "materials": {"default": "allay"},
+    "textures": {"default": "textures/entity/allay/allay"},
+    "geometry": {
+      "default": {
+        "visible_bounds_width": 1.5,
+        "visible_bounds_height": 1,
+        "visible_bounds_offset": [0, 0.5, 0],
+        "texturewidth": 32,
+        "textureheight": 32,
+        "bones": [
+          {"name": "head", "pivot": [0, 4.49, 0], "cubes": [{"origin": [0, -0.51, 0], "size": [5, 5, 5], "uv": [0, 0]}]},
+          {"name": "body", "pivot": [0, 4, 0], "cubes": [
+            {"origin": [0, 0.5, 0], "size": [3, 4, 2], "uv": [0, 10]},
+            {"origin": [0, -0.5, 0], "size": [3, 5, 2], "uv": [0, 16]}
+          ]},
+          {"name": "right_arm", "pivot": [-1.75, 4.5, 0], "cubes": [{"origin": [-2.5, 0.5, 0], "size": [1, 4, 2], "uv": [23, 0]}]},
+          {"name": "left_arm", "pivot": [1.75, 4.5, 0], "cubes": [{"origin": [1.5, 0.5, 0], "size": [1, 4, 2], "uv": [23, 6]}]},
+          {"name": "right_wing", "pivot": [-0.5, 4.6, 0], "cubes": [{"origin": [0, 0.6, 0], "size": [0.05, 5, 8], "uv": [16, 14]}]},
+          {"name": "left_wing", "pivot": [0.5, 4.6, 0], "cubes": [{"origin": [-0.05, 0.6, 0], "size": [0.05, 5, 8], "uv": [16, 14]}]}
+        ]
+      }
+    },
+    "render_controllers": ["controller.render.allay"]
+  },
   "villager": {
     "identifier": "minecraft:villager",
     "min_engine_version": "1.8.0",
@@ -18880,6 +18943,34 @@
         }
       }
     }
+  },
+  "warden": {
+    "identifier": "minecraft:warden",
+    "min_engine_version": "1.8.0",
+    "materials": {"default": "warden"},
+    "textures": {"default": "textures/entity/warden/warden"},
+    "geometry": {
+      "default": {
+        "visible_bounds_width": 3,
+        "visible_bounds_height": 4,
+        "visible_bounds_offset": [0, 2, 0],
+        "texturewidth": 128,
+        "textureheight": 128,
+        "bones": [
+          {"name": "body", "pivot": [0, 21, 0], "cubes": [{"origin": [-9, 13, -4], "size": [18, 21, 11], "uv": [0, 0]}]},
+          {"name": "right_ribcage", "parent": "body", "pivot": [-7, 23, -4], "cubes": [{"origin": [-9, 13, -4.1], "size": [9, 21, 0.05], "uv": [90, 11]}]},
+          {"name": "left_ribcage", "parent": "body", "mirror": true, "pivot": [7, 23, -4], "cubes": [{"origin": [0, 13, -4.1], "size": [9, 21, 0.05], "uv": [90, 11]}]},
+          {"name": "head", "parent": "body", "pivot": [0, 34, 0], "cubes": [{"origin": [-8, 34, -5], "size": [16, 16, 10], "uv": [0, 32]}]},
+          {"name": "right_tendril", "parent": "head", "pivot": [-8, 46, 0], "cubes": [{"origin": [-24, 43, 0], "size": [16, 16, 0.05], "uv": [52, 32]}]},
+          {"name": "left_tendril", "parent": "head", "mirror": true, "pivot": [8, 46, 0], "cubes": [{"origin": [8, 43, 0], "size": [16, 16, 0.05], "uv": [58, 0]}]},
+          {"name": "right_arm", "parent": "body", "pivot": [-13, 34, 1], "cubes": [{"origin": [-17, 6, -3], "size": [8, 28, 8], "uv": [44, 50]}]},
+          {"name": "left_arm", "parent": "body", "mirror": true, "pivot": [13, 34, 1], "cubes": [{"origin": [9, 6, -3], "size": [8, 28, 8], "uv": [0, 58]}]},
+          {"name": "right_leg", "pivot": [-5.9, 13, 0], "cubes": [{"origin": [-9, 0, -3], "size": [6, 13, 6], "uv": [76, 48]}]},
+          {"name": "left_leg", "pivot": [5.9, 13, 0], "mirror": true, "cubes": [{"origin": [3, 0, -3], "size": [6, 13, 6], "uv": [76, 76]}]}
+        ]
+      }
+    },
+    "render_controllers": ["controller.render.warden"]
   },
   "wandering_trader": {
     "identifier": "minecraft:wandering_trader",

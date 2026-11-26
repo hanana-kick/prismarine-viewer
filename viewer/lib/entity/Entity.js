@@ -10,14 +10,12 @@ const entityTextures26 = require('./texture-map-26.3.json')
 // Bedrock geometry set. Use a related rig rather than a magenta debug cube;
 // the 26.3 texture is resolved separately. Dedicated rigs are future work.
 const compatibleEntityRigs = {
-  allay: 'vex',
   armadillo: 'rabbit',
   axolotl: 'dolphin',
   bogged: 'skeleton',
   breeze: 'blaze',
   camel: 'llama',
   camel_husk: 'llama',
-  copper_golem: 'iron_golem',
   creaking: 'enderman',
   frog: 'rabbit',
   glow_squid: 'squid',
@@ -30,7 +28,6 @@ const compatibleEntityRigs = {
   sulfur_cube: 'slime',
   tadpole: 'cod',
   trader_llama: 'llama',
-  warden: 'iron_golem',
   zombie_nautilus: 'turtle'
 }
 
