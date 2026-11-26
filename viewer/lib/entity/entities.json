@@ -3834,7 +3834,8 @@
     "textures": {
       "default": "textures/entity/guardian",
       "elder": "textures/entity/guardian_elder",
-      "beam": "textures/entity/guardian_beam"
+      "beam": "textures/entity/guardian_beam",
+      "ghost": "textures/entity/guardian"
     },
     "geometry": {
       "default": {
@@ -6057,7 +6058,8 @@
     "textures": {
       "default": "textures/entity/guardian",
       "elder": "textures/entity/guardian_elder",
-      "beam": "textures/entity/guardian_beam"
+      "beam": "textures/entity/guardian_beam",
+      "ghost": "textures/entity/guardian"
     },
     "geometry": {
       "default": {
