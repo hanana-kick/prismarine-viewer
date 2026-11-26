@@ -246,6 +246,7 @@
     "endermite": "textures/26.3/entity/endermite/endermite.png",
     "fox": "textures/26.3/entity/fox/fox.png",
     "ghast": "textures/26.3/entity/ghast/ghast.png",
+    "glow_squid": "textures/26.3/entity/squid/glow_squid.png",
     "guardian": "textures/26.3/entity/guardian/guardian.png",
     "hoglin": "textures/26.3/entity/hoglin/hoglin.png",
     "horse": "textures/26.3/entity/horse/horse_black.png",

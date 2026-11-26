@@ -1234,6 +1234,43 @@
     "render_controllers": ["controller.render.blaze"],
     "spawn_egg": {"texture": "spawn_egg", "texture_index": 21}
   },
+  "breeze": {
+    "identifier": "minecraft:breeze",
+    "min_engine_version": "1.8.0",
+    "materials": {"default": "breeze"},
+    "textures": {"default": "textures/entity/breeze/breeze"},
+    "geometry": {
+      "default": {
+        "visible_bounds_width": 3,
+        "visible_bounds_height": 3,
+        "visible_bounds_offset": [0, 1.5, 0],
+        "texturewidth": 128,
+        "textureheight": 128,
+        "bones": [
+          {"name": "rod_1", "parent": "rods", "pivot": [2.5981, 19, 1.5], "rotation": [-157.5, -60, 180], "cubes": [{"origin": [1.5981, 11, -1.5], "size": [2, 8, 2], "uv": [0, 17]}]},
+          {"name": "rod_2", "parent": "rods", "pivot": [-2.5981, 19, 1.5], "rotation": [-157.5, 60, 180], "cubes": [{"origin": [-3.5981, 11, -1.5], "size": [2, 8, 2], "uv": [0, 17]}]},
+          {"name": "rod_3", "parent": "rods", "pivot": [0, 19, -3], "rotation": [22.5, 0, 0], "cubes": [{"origin": [-1, 11, -6], "size": [2, 8, 2], "uv": [0, 17]}]},
+          {"name": "rods", "pivot": [0, 16, 0]},
+          {"name": "head", "pivot": [0, 20, 0], "cubes": [
+            {"origin": [-4, 20, -4], "size": [8, 8, 8], "uv": [0, 0]},
+            {"origin": [-5, 22, -4.2], "size": [10, 3, 4], "uv": [4, 24]}
+          ]},
+          {"name": "wind_bottom", "pivot": [0, 0, 0], "cubes": [{"origin": [-2.5, 0, -2.5], "size": [5, 7, 5], "uv": [1, 83]}]},
+          {"name": "wind_mid", "parent": "wind_bottom", "pivot": [0, 7, 0], "cubes": [
+            {"origin": [-6, 7, -6], "size": [12, 6, 12], "uv": [74, 28]},
+            {"origin": [-4, 7, -4], "size": [8, 6, 8], "uv": [78, 32]},
+            {"origin": [-2.5, 7, -2.5], "size": [5, 6, 5], "uv": [49, 71]}
+          ]},
+          {"name": "wind_top", "parent": "wind_mid", "pivot": [0, 13, 0], "cubes": [
+            {"origin": [-9, 13, -9], "size": [18, 8, 18], "uv": [0, 0]},
+            {"origin": [-6, 13, -6], "size": [12, 8, 12], "uv": [6, 6]},
+            {"origin": [-2.5, 13, -2.5], "size": [5, 8, 5], "uv": [105, 57]}
+          ]}
+        ]
+      }
+    },
+    "render_controllers": ["controller.render.breeze"]
+  },
   "boat": {
     "identifier": "minecraft:boat",
     "textures": {
@@ -2855,6 +2892,37 @@
     },
     "render_controllers": ["controller.render.dolphin"],
     "spawn_egg": {"texture": "spawn_egg", "texture_index": 49}
+  },
+  "axolotl": {
+    "identifier": "minecraft:axolotl",
+    "min_engine_version": "1.8.0",
+    "materials": {"default": "axolotl"},
+    "textures": {"default": "textures/entity/axolotl/axolotl_blue"},
+    "geometry": {
+      "default": {
+        "visible_bounds_width": 2,
+        "visible_bounds_height": 1.5,
+        "visible_bounds_offset": [0, 0.5, 0],
+        "texturewidth": 64,
+        "textureheight": 64,
+        "bones": [
+          {"name": "body", "pivot": [0, 4, 5], "cubes": [
+            {"origin": [-4, 2, -4], "size": [8, 4, 10], "uv": [0, 11]},
+            {"origin": [-0.05, 2, -3], "size": [0.05, 5, 9], "uv": [2, 17]}
+          ]},
+          {"name": "head", "parent": "body", "pivot": [0, 4, -4], "cubes": [{"origin": [-4, 2, -9], "size": [8, 5, 5], "uv": [0, 1]}]},
+          {"name": "top_gills", "parent": "head", "pivot": [0, 7, -5], "cubes": [{"origin": [-4, 7, -5], "size": [8, 3, 0.05], "uv": [3, 37]}]},
+          {"name": "left_gills", "parent": "head", "pivot": [-4, 4, -5], "cubes": [{"origin": [-7, 2, -5], "size": [3, 7, 0.05], "uv": [0, 40]}]},
+          {"name": "right_gills", "parent": "head", "pivot": [4, 4, -5], "mirror": true, "cubes": [{"origin": [4, 2, -5], "size": [3, 7, 0.05], "uv": [11, 40]}]},
+          {"name": "right_hind_leg", "parent": "body", "pivot": [-3.5, 3, 4], "cubes": [{"origin": [-5.5, -2, 4], "size": [3, 5, 0.05], "uv": [2, 13]}]},
+          {"name": "left_hind_leg", "parent": "body", "pivot": [3.5, 3, 4], "mirror": true, "cubes": [{"origin": [2.5, -2, 4], "size": [3, 5, 0.05], "uv": [2, 13]}]},
+          {"name": "right_front_leg", "parent": "body", "pivot": [-3.5, 3, -3], "cubes": [{"origin": [-5.5, -2, -3], "size": [3, 5, 0.05], "uv": [2, 13]}]},
+          {"name": "left_front_leg", "parent": "body", "pivot": [3.5, 3, -3], "mirror": true, "cubes": [{"origin": [2.5, -2, -3], "size": [3, 5, 0.05], "uv": [2, 13]}]},
+          {"name": "tail", "parent": "body", "pivot": [0, 4, 6], "cubes": [{"origin": [-0.05, 2, 6], "size": [0.05, 5, 12], "uv": [2, 19]}]}
+        ]
+      }
+    },
+    "render_controllers": ["controller.render.axolotl"]
   },
   "donkey": {
     "identifier": "minecraft:donkey",
@@ -5953,6 +6021,34 @@
       }
     },
     "render_controllers": ["controller.render.ghast"]
+  },
+  "happy_ghast": {
+    "identifier": "minecraft:happy_ghast",
+    "min_engine_version": "1.8.0",
+    "materials": {"default": "happy_ghast"},
+    "textures": {"default": "textures/entity/ghast/happy_ghast"},
+    "geometry": {
+      "default": {
+        "visible_bounds_width": 6,
+        "visible_bounds_height": 6,
+        "visible_bounds_offset": [0, 3, 0],
+        "texturewidth": 64,
+        "textureheight": 64,
+        "bones": [
+          {"name": "body", "pivot": [0, 8, 0], "cubes": [{"origin": [-8, 0, -8], "size": [16, 16, 16], "uv": [0, 0]}]},
+          {"name": "tentacle_0", "parent": "body", "pivot": [-3.75, 1, -5], "cubes": [{"origin": [-4.75, -4, -6], "size": [2, 5, 2], "uv": [0, 0]}]},
+          {"name": "tentacle_1", "parent": "body", "pivot": [1.25, 1, -5], "cubes": [{"origin": [0.25, -6, -6], "size": [2, 7, 2], "uv": [0, 0]}]},
+          {"name": "tentacle_2", "parent": "body", "pivot": [6.25, 1, -5], "cubes": [{"origin": [5.25, -3, -6], "size": [2, 4, 2], "uv": [0, 0]}]},
+          {"name": "tentacle_3", "parent": "body", "pivot": [-6.25, 1, 0], "cubes": [{"origin": [-7.25, -4, -1], "size": [2, 5, 2], "uv": [0, 0]}]},
+          {"name": "tentacle_4", "parent": "body", "pivot": [-1.25, 1, 0], "cubes": [{"origin": [-2.25, -4, -1], "size": [2, 5, 2], "uv": [0, 0]}]},
+          {"name": "tentacle_5", "parent": "body", "pivot": [3.75, 1, 0], "cubes": [{"origin": [2.75, -6, -1], "size": [2, 7, 2], "uv": [0, 0]}]},
+          {"name": "tentacle_6", "parent": "body", "pivot": [-3.75, 1, 5], "cubes": [{"origin": [-4.75, -7, 4], "size": [2, 8, 2], "uv": [0, 0]}]},
+          {"name": "tentacle_7", "parent": "body", "pivot": [1.25, 1, 5], "cubes": [{"origin": [0.25, -7, 4], "size": [2, 8, 2], "uv": [0, 0]}]},
+          {"name": "tentacle_8", "parent": "body", "pivot": [6.25, 1, 5], "cubes": [{"origin": [5.25, -4, 4], "size": [2, 5, 2], "uv": [0, 0]}]}
+        ]
+      }
+    },
+    "render_controllers": ["controller.render.happy_ghast"]
   },
   "guardian": {
     "identifier": "minecraft:guardian",
@@ -16584,6 +16680,122 @@
     "render_controllers": ["controller.render.squid"],
     "spawn_egg": {"texture": "spawn_egg", "texture_index": 15}
   },
+  "glow_squid": {
+    "identifier": "minecraft:glow_squid",
+    "min_engine_version": "1.8.0",
+    "materials": {"default": "glow_squid"},
+    "textures": {"default": "textures/entity/squid/glow_squid"},
+    "geometry": {
+      "default": {
+        "visible_bounds_width": 3,
+        "visible_bounds_height": 2,
+        "visible_bounds_offset": [0, 0.5, 0],
+        "texturewidth": 64,
+        "textureheight": 32,
+        "bones": [
+          {
+            "name": "body",
+            "pivot": [0, 16, 0],
+            "cubes": [
+              {"origin": [-6, 8, -6], "size": [12, 16, 12], "uv": [0, 0]}
+            ]
+          },
+          {
+            "name": "tentacle1",
+            "parent": "body",
+            "pivot": [5, 9, 0],
+            "cubes": [
+              {"origin": [4, -9, -1], "size": [2, 18, 2], "uv": [48, 0]}
+            ],
+            "rotation": [0, 90, 0]
+          },
+          {
+            "name": "tentacle2",
+            "parent": "body",
+            "pivot": [3.5355, 9, 3.5355],
+            "cubes": [
+              {"origin": [2.5355, -9, 2.5355], "size": [2, 18, 2], "uv": [48, 0]}
+            ],
+            "rotation": [0, 45, 0]
+          },
+          {
+            "name": "tentacle3",
+            "parent": "body",
+            "pivot": [0, 9, 5],
+            "cubes": [
+              {"origin": [-1, -9, 4], "size": [2, 18, 2], "uv": [48, 0]}
+            ]
+          },
+          {
+            "name": "tentacle4",
+            "parent": "body",
+            "pivot": [-3.5355, 9, 3.5355],
+            "cubes": [
+              {"origin": [-4.5355, -9, 2.5355], "size": [2, 18, 2], "uv": [48, 0]}
+            ],
+            "rotation": [0, -45, 0]
+          },
+          {
+            "name": "tentacle5",
+            "parent": "body",
+            "pivot": [-5, 9, 0],
+            "cubes": [
+              {"origin": [-6, -9, -1], "size": [2, 18, 2], "uv": [48, 0]}
+            ],
+            "rotation": [0, -90, 0]
+          },
+          {
+            "name": "tentacle6",
+            "parent": "body",
+            "pivot": [-3.5355, 9, -3.5355],
+            "cubes": [
+              {"origin": [-4.5355, -9, -4.5355], "size": [2, 18, 2], "uv": [48, 0]}
+            ],
+            "rotation": [0, -135, 0]
+          },
+          {
+            "name": "tentacle7",
+            "parent": "body",
+            "pivot": [0, 9, -5],
+            "cubes": [
+              {"origin": [-1, -9, -6], "size": [2, 18, 2], "uv": [48, 0]}
+            ],
+            "rotation": [0, 180, 0]
+          },
+          {
+            "name": "tentacle8",
+            "parent": "body",
+            "pivot": [3.5355, 9, -3.5355],
+            "cubes": [
+              {"origin": [2.5355, -9, -4.5355], "size": [2, 18, 2], "uv": [48, 0]}
+            ],
+            "rotation": [0, 135, 0]
+          }
+        ]
+      }
+    },
+    "animations": {
+      "move": {
+        "loop": true,
+        "bones": {}
+      },
+      "squid_rotate": {
+        "anim_time_update": "query.modified_distance_moved",
+        "loop": true,
+        "bones": {
+          "body": {
+            "rotation": [
+              {"y": "180.0 - this"},
+              {"x": "query.body_x_rotation"},
+              {"y": "variable.squid.swim_rotation"}
+            ]
+          }
+        }
+      }
+    },
+    "scripts": {"animate": ["move", "squid_rotate"]},
+    "render_controllers": ["controller.render.glow_squid"]
+  },
   "stray": {
     "identifier": "minecraft:stray",
     "min_engine_version": "1.8.0",
@@ -17426,14 +17638,10 @@
             "name": "pole",
             "pivot": [0, 24, 0],
             "cubes": [
-              {
-                "origin": [-0.5, -3, -0.5],
-                "size": [1, 31, 1],
-                "inflate": 0.01,
-                "uv": [0, 0]
-              },
+              {"origin": [-0.5, -3, -0.5], "size": [1, 25, 1], "uv": [0, 6]},
               {"origin": [-1.5, 22, -0.5], "size": [3, 2, 1], "uv": [4, 0]},
               {"origin": [-2.5, 23, -0.5], "size": [1, 4, 1], "uv": [4, 3]},
+              {"origin": [-0.5, 24, -0.5], "size": [1, 4, 1], "uv": [0, 0]},
               {"origin": [1.5, 23, -0.5], "size": [1, 4, 1], "uv": [4, 3]}
             ]
           }
@@ -19350,6 +19558,7 @@
     "materials": {"default": "wither_boss", "armor": "wither_boss_armor"},
     "textures": {
       "default": "textures/entity/wither/wither",
+      "armor": "textures/entity/wither/wither_armor",
       "armor_white": "textures/entity/wither/wither_armor",
       "armor_blue": "textures/entity/wither/wither_armor",
       "invulnerable": "textures/entity/wither/wither_invulnerable"

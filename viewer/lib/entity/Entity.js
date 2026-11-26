@@ -11,16 +11,12 @@ const entityTextures26 = require('./texture-map-26.3.json')
 // the 26.3 texture is resolved separately. Dedicated rigs are future work.
 const compatibleEntityRigs = {
   armadillo: 'rabbit',
-  axolotl: 'dolphin',
   bogged: 'skeleton',
-  breeze: 'blaze',
   camel: 'llama',
   camel_husk: 'llama',
   creaking: 'enderman',
   frog: 'rabbit',
-  glow_squid: 'squid',
   goat: 'sheep',
-  happy_ghast: 'ghast',
   mannequin: 'armor_stand',
   nautilus: 'turtle',
   parched: 'skeleton',
@@ -117,7 +113,11 @@ const entityScales = {
   happy_ghast: 4.0,
   wither: 2.0,
   elder_guardian: 2.35,
-  giant: 6
+  giant: 6,
+  dragon_fireball: 2.0,
+  fireball: 3.0,
+  small_fireball: 0.75,
+  shulker_bullet: 0.5
 }
 
 const nonMeshEntities = new Set([
