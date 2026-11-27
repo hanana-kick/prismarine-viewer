@@ -10,21 +10,7 @@ const entityTextures26 = require('./texture-map-26.3.json')
 // Bedrock geometry set. Use a related rig rather than a magenta debug cube;
 // the 26.3 texture is resolved separately. Dedicated rigs are future work.
 const compatibleEntityRigs = {
-  armadillo: 'rabbit',
-  bogged: 'skeleton',
-  camel: 'llama',
-  camel_husk: 'llama',
-  creaking: 'enderman',
-  frog: 'rabbit',
-  goat: 'sheep',
-  mannequin: 'armor_stand',
-  nautilus: 'turtle',
-  parched: 'skeleton',
-  sniffer: 'ravager',
-  sulfur_cube: 'slime',
-  tadpole: 'cod',
-  trader_llama: 'llama',
-  zombie_nautilus: 'turtle'
+  mannequin: 'armor_stand'
 }
 
 // 26.3 registers separate boat entities for every wood, while the legacy
@@ -33,8 +19,6 @@ function selectRig (type) {
   if (/_chest_boat$/.test(type) || /_boat$/.test(type) ||
       type === 'bamboo_raft' || type === 'bamboo_chest_raft') return 'boat'
   const additions = {
-    giant: 'zombie',
-    illusioner: 'evoker',
     furnace_minecart: 'minecart',
     spawner_minecart: 'minecart',
     spectral_arrow: 'arrow'
