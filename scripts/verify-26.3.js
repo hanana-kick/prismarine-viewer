@@ -120,4 +120,73 @@ const minimumGreen = Math.min(...green)
 assert(minimumGreen > 0.12, `Dark oak leaf colours are still too dark: ${minimumGreen}`)
 console.log(`26.3 dense-leaf meshing check passed: minimum green = ${minimumGreen.toFixed(3)}`)
 
+const { Vec3 } = require('vec3')
+const bubbleBlock = {
+  name: 'bubble_column',
+  type: mcData.blocksByName.bubble_column.id,
+  metadata: 0,
+  transparent: true,
+  isCube: true,
+  biome,
+  getProperties: () => ({ drag: true })
+}
+const bubbleWorld = {
+  minY: -64,
+  getBlock: pos => {
+    const block = pos.x === 0 && pos.y === 0 && pos.z === 0 ? bubbleBlock : airBlock
+    block.position = new Vec3(pos.x, pos.y, pos.z)
+    return block
+  }
+}
+const bubbleMesh = getSectionGeometry(0, 0, 0, bubbleWorld, states)
+assert(bubbleMesh.positions.length > 0, 'Bubble columns must use the water liquid renderer')
+console.log('26.3 bubble-column liquid meshing check passed')
+
+// Empty block models are expected for block-entity renderers, invisible helper
+// blocks and upper pitcher-crop states; do not classify those as missing models.
+const PrismarineBlock = require('prismarine-block')('26.3')
+function expectedEmptyBlockModel (name) {
+  return name === 'moving_piston' || name === 'end_portal' || name === 'end_gateway' ||
+    name === 'chest' || name === 'shulker_box' ||
+    name === 'decorated_pot' || name === 'conduit' || name === 'pitcher_crop' ||
+    name === 'barrier' || name === 'light' || name === 'structure_void' ||
+    name.endsWith('_chest') || name.endsWith('_shulker_box') ||
+    name.endsWith('_skull') || name.endsWith('_head') || name.endsWith('_banner') ||
+    name.includes('copper_golem_statue')
+}
+function meshSingleBlock (block) {
+  block.position = new Vec3(8, 8, 8)
+  block.biome = biome
+  const world = {
+    minY: -64,
+    getBlock: pos => {
+      if (pos.x === 8 && pos.y === 8 && pos.z === 8) return block
+      const air = PrismarineBlock.fromStateId(0, 0)
+      air.position = new Vec3(pos.x, pos.y, pos.z)
+      air.biome = biome
+      return air
+    }
+  }
+  return getSectionGeometry(0, 0, 0, world, states)
+}
+const unexpectedEmpty = []
+const meshingErrors = []
+for (const block of mcData.blocksArray) {
+  if (block.name === 'air' || block.name === 'cave_air' || block.name === 'void_air') continue
+  try {
+    const mesh = meshSingleBlock(PrismarineBlock.fromStateId(block.minStateId, 0))
+    if (mesh.positions.length === 0 && !expectedEmptyBlockModel(block.name)) unexpectedEmpty.push(block.name)
+  } catch (error) {
+    meshingErrors.push(block.name + ': ' + error.message)
+  }
+}
+assert.deepEqual(unexpectedEmpty, [], 'Ordinary blocks unexpectedly render no geometry')
+assert.deepEqual(meshingErrors, [], 'Block meshing threw an exception')
+let pitcherVariants = 0
+for (let stateId = mcData.blocksByName.pitcher_crop.minStateId; stateId <= mcData.blocksByName.pitcher_crop.maxStateId; stateId++) {
+  if (meshSingleBlock(PrismarineBlock.fromStateId(stateId, 0)).positions.length > 0) pitcherVariants++
+}
+assert(pitcherVariants > 0, 'Every pitcher-crop state unexpectedly renders no geometry')
+console.log(`26.3 full block sweep: ${mcData.blocksArray.length - 3} blocks, 0 unexpected empty models, ${pitcherVariants} pitcher-crop states meshed`)
+
 console.log('Minecraft 26.3 data, block models, chunk world bounds and browser bundles verified')

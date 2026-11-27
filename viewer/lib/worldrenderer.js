@@ -4,6 +4,7 @@ const Vec3 = require('vec3').Vec3
 const { loadTexture, loadJSON } = globalThis.isElectron ? require('./utils.electron.js') : require('./utils')
 const { EventEmitter } = require('events')
 const { dispose3 } = require('./dispose')
+const { createBlockEntityMesh } = require('./blockEntityModels')
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -12,6 +13,7 @@ function mod (x, n) {
 class WorldRenderer {
   constructor (scene, numWorkers = 4) {
     this.sectionMeshs = {}
+    this.blockEntityGroups = {}
     this.active = false
     this.version = undefined
     this.assetsVersion = undefined
@@ -56,6 +58,7 @@ class WorldRenderer {
             dispose3(mesh)
             delete this.sectionMeshs[data.key]
           }
+          this.removeBlockEntities(data.key)
 
           const chunkCoords = data.key.split(',')
           if (!this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]]) return
@@ -72,6 +75,7 @@ class WorldRenderer {
           mesh.position.set(data.geometry.sx, data.geometry.sy, data.geometry.sz)
           this.sectionMeshs[data.key] = mesh
           this.scene.add(mesh)
+          this.createBlockEntities(data.key, data.blockEntities || [])
         } else if (data.type === 'sectionFinished') {
           this.sectionsOutstanding.delete(data.key)
           this.renderUpdateEmitter.emit('update')
@@ -82,12 +86,42 @@ class WorldRenderer {
     }
   }
 
+  createBlockEntities (key, entries) {
+    const group = new THREE.Group()
+    group.name = `blockEntities:${key}`
+    // Model groups own their asynchronously loaded resources. Disposing this
+    // wrapper must reach them even after the wrapper has left the scene.
+    group.dispose = () => {
+      for (const child of [...group.children]) dispose3(child)
+    }
+    for (const entry of entries) {
+      const model = createBlockEntityMesh(entry, this.assetsVersion || this.version)
+      if (model) group.add(model)
+    }
+    if (group.children.length === 0) return
+    this.blockEntityGroups[key] = group
+    this.scene.add(group)
+  }
+
+  removeBlockEntities (key) {
+    const group = this.blockEntityGroups[key]
+    if (!group) return
+    delete this.blockEntityGroups[key]
+    this.scene.remove(group)
+    dispose3(group)
+  }
+
   resetWorld () {
     this.active = false
     for (const mesh of Object.values(this.sectionMeshs)) {
       this.scene.remove(mesh)
+      dispose3(mesh)
     }
     this.sectionMeshs = {}
+    for (const key of Object.keys(this.blockEntityGroups)) {
+      this.removeBlockEntities(key)
+    }
+    this.loadedChunks = {}
     for (const worker of this.workers) {
       worker.postMessage({ type: 'reset' })
     }
@@ -181,6 +215,7 @@ class WorldRenderer {
           dispose3(mesh)
         }
         delete this.sectionMeshs[key]
+        this.removeBlockEntities(key)
       }
     })
   }

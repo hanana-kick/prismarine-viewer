@@ -1,5 +1,6 @@
 const THREE = require('three')
 const { loadTexture, loadPixels, loadJSON } = globalThis.isElectron ? require('../utils.electron.js') : require('../utils')
+const { getBlockMesh, blockModelExists } = require('./blockModel')
 
 // Ground display of the two item model parents: item/generated is the sprite at half scale extruded one
 // pixel deep, block/block is the block at quarter scale.
@@ -88,11 +89,15 @@ function getItemMesh (itemName, version, fallback) {
   let disposed = false
   const owned = []
   group.dispose = () => {
+    if (disposed) return
     disposed = true
-    // The map is shared through the texture cache, so only the geometry and material are ours.
-    for (const mesh of owned) {
-      mesh.geometry.dispose()
-      mesh.material.dispose()
+    // Cached maps stay alive; nested block groups stop their own pending loads.
+    for (const object of owned) {
+      if (object.dispose) object.dispose()
+      else {
+        object.geometry?.dispose()
+        object.material?.dispose()
+      }
     }
   }
   const attach = (parent, mesh) => {
@@ -100,22 +105,37 @@ function getItemMesh (itemName, version, fallback) {
     parent.add(mesh)
   }
 
-  itemTextures(version).then(byName => {
+  itemTextures(version).then(async byName => {
     if (disposed) return
     const texture = byName[itemName]
-    if (!texture || !/^(minecraft:)?(items|block)\//.test(texture)) {
+    // The index deliberately leaves model-only block items (stairs, TNT, etc.)
+    // null. Undefined still means an unknown item and retains fallback().
+    const isBlock = /^(minecraft:)?block\//.test(texture || '') ||
+      (texture === null && await blockModelExists(itemName, version))
+    if (disposed) return
+    if (!isBlock && (!texture || !/^(minecraft:)?items\//.test(texture))) {
       attach(group, fallback())
       return
     }
-    const isBlock = /^(minecraft:)?block\//.test(texture)
     const size = isBlock ? BLOCK_SCALE : FLAT_SCALE
+    if (isBlock) {
+      const block = getBlockMesh(itemName, version)
+      block.scale.setScalar(BLOCK_SCALE)
+      block.position.set(-BLOCK_SCALE / 2, -BLOCK_SCALE / 2, -BLOCK_SCALE / 2)
+      block.userData.displayRoot = group.userData.displayRoot
+      attach(pivot, block)
+      group.item.size = size
+      return
+    }
     const path = texturePath(version, texture)
     loadPixels(path, pixels => loadTexture(path, map => {
       if (disposed) return
       map.magFilter = THREE.NearestFilter
       map.minFilter = THREE.NearestFilter
-      const geometry = isBlock ? new THREE.BoxGeometry(size, size, size) : spriteGeometry(pixels, size, size * FLAT_DEPTH)
-      attach(pivot, new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ map, transparent: true, alphaTest: 0.1 })))
+      const geometry = spriteGeometry(pixels, size, size * FLAT_DEPTH)
+      const mesh = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ map, transparent: true, alphaTest: 0.1 }))
+      mesh.onBeforeRender = (renderer, scene, camera) => group.userData.displayRoot?.userData.orientToCamera?.(camera)
+      attach(pivot, mesh)
       group.item.size = size
     }))
   })

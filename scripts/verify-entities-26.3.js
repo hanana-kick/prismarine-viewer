@@ -42,11 +42,20 @@ for (const [name, original, expected] of [
   ['creeper', 'textures/entity/creeper/creeper', 'creeper/creeper.png'],
   ['armor_stand', 'textures/entity/armorstand/wood', 'armorstand/armorstand.png'],
   ['turtle', 'textures/entity/turtle/big_sea_turtle', 'turtle/turtle.png'],
-  ['zombie', 'textures/entity/zombie/zombie', 'zombie/zombie.png']
+  ['zombie', 'textures/entity/zombie/zombie', 'zombie/zombie.png'],
+  ['elder_guardian', 'textures/entity/guardian', 'guardian/guardian_elder.png'],
+  ['pufferfish', 'textures/entity/fish/pufferfish', 'fish/pufferfish.png'],
+  ['stray', 'textures/entity/skeleton/stray', 'skeleton/stray.png'],
+  ['tropical_fish', 'textures/entity/fish/tropical', 'fish/tropical_a.png'],
+  ['zombie_nautilus', 'textures/entity/nautilus/zombie', 'nautilus/zombie_nautilus.png'],
+  ['mannequin', 'textures/entity/alex', 'player/slim/alex.png'],
+  ['bamboo_raft', 'textures/entity/boat/bamboo', 'boat/bamboo.png']
 ]) {
   const resolved = Entity.textureFor('26.3', name, 'default', original)
   assert(resolved.endsWith('entity/' + expected), `Incorrect ${name} texture: ${resolved}`)
 }
+assert(Entity.textureFor('26.3', 'firework_rocket', 'default', 'textures/entity/fireworks')
+  .endsWith('items/firework_rocket.png'), 'Firework rocket must use its item sprite')
 
 const names = [
   'player', 'player_slim', 'cow', 'pig', 'chicken', 'creeper',
@@ -82,63 +91,72 @@ entities.clear()
 const gameData = require('minecraft-data')('26.3')
 const listed = gameData.entitiesArray
 assert(listed.length >= 150, 'Expected the complete 26.3 entity registry')
-const diagnosticScene = new THREE.Scene()
-const diagnosticEntities = new Entities(diagnosticScene)
-diagnosticEntities.setVersion('26.3')
-const fallbackTypes = []
-const blankTypes = []
-const unresolvedTypes = []
-const thrownTypes = []
-for (const [i, entity] of listed.entries()) {
-  try {
-    const id = i + 4000
-    diagnosticEntities.update({
-      id,
-      name: entity.name,
-      width: entity.width,
-      height: entity.height,
-      pos: { x: i * 2, y: 64, z: 0 }
-    })
-    const mesh = diagnosticEntities.entities[id]
-    if (!mesh) {
-      if (entity.name !== 'item' && !Entity.nonMeshEntities.has(entity.name)) {
+async function registryAudit () {
+  const diagnosticScene = new THREE.Scene()
+  const diagnosticEntities = new Entities(diagnosticScene)
+  diagnosticEntities.setVersion('26.3')
+  const fallbackTypes = []
+  const blankTypes = []
+  const unresolvedTypes = []
+  const thrownTypes = []
+  for (const [i, entity] of listed.entries()) {
+    try {
+      const id = i + 4000
+      diagnosticEntities.update({
+        id,
+        name: entity.name,
+        width: entity.width,
+        height: entity.height,
+        pos: { x: i * 2, y: 64, z: 0 }
+      })
+      const mesh = diagnosticEntities.entities[id]
+      if (!mesh) {
+        if (entity.name !== 'item' && !Entity.nonMeshEntities.has(entity.name)) {
+          blankTypes.push(entity.name)
+        }
+        continue
+      }
+      let hasGeometry = false
+      // Block/item/display models load their real textures asynchronously.
+      // Wait only while the mesh is empty; ordinary rigs finish synchronously.
+      for (let attempt = 0; attempt < 200 && !hasGeometry; attempt++) {
+        mesh.traverse(node => {
+          if ((node.isMesh && node.geometry?.attributes.position?.count > 0) || node.isSprite) hasGeometry = true
+        })
+        if (!hasGeometry) await new Promise(resolve => setImmediate(resolve))
+      }
+      let magenta = false
+      let unresolved = false
+      mesh.traverse(node => {
+        if (node.isMesh && node.material?.color?.getHex() === 0xff00ff) magenta = true
+        if (node.userData?.unresolvedEntity) unresolved = true
+      })
+      if (magenta) fallbackTypes.push(entity.name)
+      if (unresolved) unresolvedTypes.push(entity.name)
+      if (!hasGeometry && entity.name !== 'item' && !Entity.nonMeshEntities.has(entity.name)) {
         blankTypes.push(entity.name)
       }
-      continue
+    } catch (err) {
+      thrownTypes.push(entity.name + ': ' + err.message)
     }
-    let magenta = false
-    let hasGeometry = false
-    let unresolved = false
-    mesh.traverse(node => {
-      if (node.isMesh && node.geometry?.attributes.position?.count > 0) hasGeometry = true
-      if (node.isMesh && node.material?.color?.getHex() === 0xff00ff) magenta = true
-      if (node.userData?.unresolvedEntity) unresolved = true
-    })
-    if (magenta) fallbackTypes.push(entity.name)
-    if (unresolved) unresolvedTypes.push(entity.name)
-    if (!hasGeometry && entity.name !== 'item' && !Entity.nonMeshEntities.has(entity.name)) {
-      blankTypes.push(entity.name)
-    }
-  } catch (err) {
-    thrownTypes.push(entity.name + ': ' + err.message)
   }
+  diagnosticEntities.clear()
+  console.log('26.3 full entity registry audit: magenta=' + fallbackTypes.length +
+    ', unresolved=' + unresolvedTypes.length + ', empty=' + blankTypes.length +
+    ', threw=' + thrownTypes.length)
+  console.log('26.3 magenta types: ' + fallbackTypes.join(', '))
+  console.log('26.3 unresolved types: ' + unresolvedTypes.join(', '))
+  console.log('26.3 empty types: ' + blankTypes.join(', '))
+  if (thrownTypes.length) console.log('26.3 thrown types: ' + thrownTypes.join('; '))
+  assert.equal(fallbackTypes.length, 0, '26.3 rendered magenta debug entities')
+  assert.equal(unresolvedTypes.length, 0, 'Registered 26.3 entities use unresolved wireframe placeholders')
+  assert.equal(blankTypes.length, 0, 'Visible 26.3 entities have no geometry')
+  assert.equal(thrownTypes.length, 0, '26.3 entity renderer threw while constructing geometry')
+  for (const name of ['salmon', 'cod', 'tropical_fish', 'pufferfish', 'bee', 'fox', 'bat', 'mooshroom']) {
+    assert(!fallbackTypes.includes(name), 'Common world mob fell back to magenta: ' + name)
+  }
+  console.log(`Minecraft Java 26.3: validated ${names.length} player/mob rigs and ${Object.keys(manifest.textures).length} mapped textures`)
 }
-diagnosticEntities.clear()
-console.log('26.3 full entity registry audit: magenta=' + fallbackTypes.length +
-  ', unresolved=' + unresolvedTypes.length + ', empty=' + blankTypes.length +
-  ', threw=' + thrownTypes.length)
-console.log('26.3 magenta types: ' + fallbackTypes.join(', '))
-console.log('26.3 unresolved types: ' + unresolvedTypes.join(', '))
-console.log('26.3 empty types: ' + blankTypes.join(', '))
-if (thrownTypes.length) console.log('26.3 thrown types: ' + thrownTypes.join('; '))
-assert.equal(fallbackTypes.length, 0, '26.3 rendered magenta debug entities')
-assert.equal(unresolvedTypes.length, 0, 'Registered 26.3 entities use unresolved wireframe placeholders')
-assert.equal(blankTypes.length, 0, 'Visible 26.3 entities have no geometry')
-assert.equal(thrownTypes.length, 0, '26.3 entity renderer threw while constructing geometry')
-for (const name of ['salmon', 'cod', 'tropical_fish', 'pufferfish', 'bee', 'fox', 'bat', 'mooshroom']) {
-  assert(!fallbackTypes.includes(name), 'Common world mob fell back to magenta: ' + name)
-}
-console.log(`Minecraft Java 26.3: validated ${names.length} player/mob rigs and ${Object.keys(manifest.textures).length} mapped textures`)
 
 const legacyRig = { width: 64, height: 32 }
 assert.deepEqual(Entity.uvScaleForImage(legacyRig, { width: 64, height: 64 }), { sx: 1, sy: 0.5 },
@@ -156,6 +174,15 @@ assert.equal(sheep.mesh.children.length, 1, 'A normal sheep must not render the 
 const stray = new Entity('26.3', 'stray', new THREE.Scene())
 assert.equal(stray.mesh.children.length, 2, 'Legitimate layered rigs must keep their overlay')
 console.log('Alternate states are not rendered on ordinary mobs')
+
+for (const name of ['bamboo_raft', 'bamboo_chest_raft', 'mannequin']) {
+  assert.equal(Entity.selectRig(name), name, `${name} must use its dedicated rig`)
+  const entity = new Entity('26.3', name, scene)
+  assert(entity.mesh.children.length > 0, `${name} has no dedicated geometry`)
+}
+const sulfurCube = new Entity('26.3', 'sulfur_cube', scene)
+assert.equal(sulfurCube.mesh.children.length, 2, 'Sulfur cube must render its inner and outer layers')
+console.log('Dedicated raft/mannequin rigs and sulfur-cube outer layer verified')
 
 for (const name of ['arrow', 'spectral_arrow', 'trident']) {
   const entity = new Entity('26.3', name, new THREE.Scene())
@@ -222,7 +249,8 @@ function sulfurUvTest () {
   console.log('Sulfur cube UV atlas offset is configured')
 }
 
-initialPositionTest()
+registryAudit()
+  .then(initialPositionTest)
   .then(sulfurUvTest)
   .catch(err => {
     console.error(err)

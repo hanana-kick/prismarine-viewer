@@ -27,7 +27,7 @@ const MODEL_FLOATS_BY_DESIGN = new Set([
   'allay', 'vex', 'bee', 'parrot', 'shulker', 'end_crystal', 'squid', 'glow_squid',
   'cod', 'salmon', 'tropical_fish', 'pufferfish', 'tadpole', 'dolphin', 'turtle',
   'axolotl', 'nautilus', 'zombie_nautilus', 'guardian', 'elder_guardian',
-  'spider', 'cave_spider', 'eye_of_ender'
+  'spider', 'cave_spider', 'eye_of_ender', 'leash_knot'
 ])
 
 function parseArgs (argv) {
@@ -81,8 +81,7 @@ function buildBundle () {
 function rigSourceOf (Entity, name, rig) {
   if (rig === name) return 'own rig'
   if (Entity.compatibleEntityRigs[name]) return 'shared rig'
-  if (/_boat$/.test(name) || /_chest_boat$/.test(name) ||
-      name === 'bamboo_raft' || name === 'bamboo_chest_raft') return 'shared boat rig'
+  if (/_boat$/.test(name) || /_chest_boat$/.test(name)) return 'shared boat rig'
   return 'fallback rig'
 }
 
@@ -91,6 +90,7 @@ function buildCatalog () {
   const THREE = require('three')
   const registry = require('prismarine-registry')('26.3')
   const Entity = require('../viewer/lib/entity/Entity')
+  const { specialEntityTypes } = require('../viewer/lib/entity/special')
   const rigs = require('../viewer/lib/entity/entities.json')
   const textureMap = require('../viewer/lib/entity/texture-map-26.3.json')
   const scene = new THREE.Scene()
@@ -100,15 +100,15 @@ function buildCatalog () {
     const name = String(entry.name || '').replace(/^minecraft:/, '')
     if (!name) continue
     const hidden = Entity.nonMeshEntities.has(name)
-    const simple = Entity.simpleEntities[name]
+    const special = specialEntityTypes.has(name)
     const rig = Entity.selectRig(name)
     const rigData = rigs[rig]
     const record = {
       name,
       hitbox: { width: entry.width, height: entry.height },
-      kind: hidden ? 'hidden' : (simple ? 'simple' : 'rig'),
-      rig: simple ? `simple:${simple.shape}` : rig,
-      rigSource: rigSourceOf(Entity, name, rig),
+      kind: hidden ? 'hidden' : (special ? 'special' : 'rig'),
+      rig: special ? 'special:' + rig : rig,
+      rigSource: special ? 'metadata renderer' : rigSourceOf(Entity, name, rig),
       parts: [],
       rendered: null,
       warnings: []
@@ -152,9 +152,9 @@ function buildCatalog () {
     }
 
     if (hidden) warn('info', 'rendered as nothing (nonMesh)')
-    if (simple) warn('info', `simple ${simple.shape} placeholder, not a real model`)
+    if (special) warn('info', 'rendered from entity metadata by the special renderer')
     if (name === 'item') warn('info', 'dropped item: built from the item model, pick the item with --item')
-    if (!hidden && !simple && name !== 'item') {
+    if (!hidden && !special && name !== 'item') {
       if (!rigData) warn('bad', `no rig named "${rig}" in entities.json`)
       else if (rig !== name && !name.endsWith(rig)) warn('warn', `borrowed rig "${rig}", silhouette is not this mob`)
       if (record.rendered === null) warn('bad', 'renders nothing')
@@ -176,7 +176,7 @@ function buildCatalog () {
           warn('warn', `mesh floats ${record.rendered.minY.toFixed(2)} blocks above the floor`)
         }
       }
-      const untextured = record.parts.filter(part => part.part !== 'sheared' && part.part !== 'charged' && !part.texture)
+      const untextured = record.parts.filter(part => part.part !== 'sheared' && part.part !== 'charged' && part.part !== 'cape' && !part.texture)
       for (const part of untextured) warn('warn', `part "${part.part}" has no 26.3 texture, dropped`)
       if (record.parts.length > 1 && !textureMap.defaults[name]) {
         warn('warn', 'no 26.3 default texture for this type: variant chosen by rig order')

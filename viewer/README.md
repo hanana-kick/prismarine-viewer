@@ -52,7 +52,7 @@ Set a block at this position
 
 Updates an entity
 
-* e is a prismarine-entity
+* e is a prismarine-entity or a serialized entity update. In addition to position and rotation, display/block state, item, text, frame, painting and billboard fields are retained by entity id so partial metadata updates rebuild the correct content mesh.
 
 #### updatePrimitive (p)
 

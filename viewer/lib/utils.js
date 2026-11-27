@@ -5,8 +5,9 @@ function safeRequire (path) {
     return {}
   }
 }
-const { loadImage } = safeRequire('node-canvas-webgl/lib')
-const { createCanvas } = safeRequire('canvas')
+const { loadImage: webglLoadImage } = safeRequire('node-canvas-webgl/lib')
+const { createCanvas, loadImage: canvasLoadImage } = safeRequire('canvas')
+const loadImage = webglLoadImage || canvasLoadImage
 const THREE = require('three')
 const path = require('path')
 

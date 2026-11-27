@@ -31,7 +31,7 @@ function setup () {
   return { scene, entities }
 }
 
-const isMissingModel = o => o.isMesh && o.material.color?.getHex() === 0xff00ff
+const isMissingModel = o => o.isMesh && !!o.userData.unresolvedEntity
 
 describe('dropped items', () => {
   it('has no mesh until the stack is known, even after moving', async () => {

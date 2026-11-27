@@ -1416,6 +1416,102 @@
       }
     }
   },
+  "bamboo_raft": {
+    "identifier": "minecraft:bamboo_raft",
+    "textures": {"default": "textures/entity/boat/bamboo"},
+    "geometry": {
+      "default": {
+        "texturewidth": 128,
+        "textureheight": 64,
+        "bones": [
+          {
+            "name": "bottom",
+            "pivot": [0, 8.1, 1],
+            "rotation": [90, 0, 0],
+            "cubes": [
+              {"origin": [-14, -0.9, -3], "size": [28, 20, 4], "uv": [0, 0]},
+              {"origin": [-14, 1.1, -7], "size": [28, 16, 4], "uv": [0, 0]}
+            ]
+          },
+          {
+            "name": "left_paddle",
+            "pivot": [3, 10, 9],
+            "rotation": [0, 0, 11.25],
+            "cubes": [
+              {"origin": [2, 8, 4], "size": [2, 2, 18], "uv": [0, 24]},
+              {"origin": [1.999, 7, 17], "size": [1, 6, 7], "uv": [0, 24]}
+            ]
+          },
+          {
+            "name": "right_paddle",
+            "pivot": [3, 10, -9],
+            "rotation": [0, 180, 11.25],
+            "cubes": [
+              {"origin": [2, 8, -14], "size": [2, 2, 18], "uv": [40, 24]},
+              {"origin": [3.001, 7, -1], "size": [1, 6, 7], "uv": [40, 24]}
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "bamboo_chest_raft": {
+    "identifier": "minecraft:bamboo_chest_raft",
+    "textures": {"default": "textures/entity/chest_boat/bamboo"},
+    "geometry": {
+      "default": {
+        "texturewidth": 128,
+        "textureheight": 128,
+        "bones": [
+          {
+            "name": "bottom",
+            "pivot": [0, 8.1, 1],
+            "rotation": [90, 0, 0],
+            "cubes": [
+              {"origin": [-14, -0.9, -3], "size": [28, 20, 4], "uv": [0, 0]},
+              {"origin": [-14, 1.1, -7], "size": [28, 16, 4], "uv": [0, 0]}
+            ]
+          },
+          {
+            "name": "left_paddle",
+            "pivot": [3, 10, 9],
+            "rotation": [0, 0, 11.25],
+            "cubes": [
+              {"origin": [2, 8, 4], "size": [2, 2, 18], "uv": [0, 24]},
+              {"origin": [1.999, 7, 17], "size": [1, 6, 7], "uv": [0, 24]}
+            ]
+          },
+          {
+            "name": "right_paddle",
+            "pivot": [3, 10, -9],
+            "rotation": [0, 180, 11.25],
+            "cubes": [
+              {"origin": [2, 8, -14], "size": [2, 2, 18], "uv": [40, 24]},
+              {"origin": [3.001, 7, -1], "size": [1, 6, 7], "uv": [40, 24]}
+            ]
+          },
+          {
+            "name": "chest_bottom",
+            "pivot": [-2, 16.1, -6],
+            "rotation": [0, -90, 0],
+            "cubes": [{"origin": [-2, 8.1, -6], "size": [12, 8, 12], "uv": [0, 76]}]
+          },
+          {
+            "name": "chest_lid",
+            "pivot": [-2, 20.1, -6],
+            "rotation": [0, -90, 0],
+            "cubes": [{"origin": [-2, 16.1, -6], "size": [12, 4, 12], "uv": [0, 59]}]
+          },
+          {
+            "name": "chest_lock",
+            "pivot": [-1, 17.1, -1],
+            "rotation": [0, -90, 0],
+            "cubes": [{"origin": [-1, 13.1, -1], "size": [2, 4, 1], "uv": [0, 59]}]
+          }
+        ]
+      }
+    }
+  },
   "cat": {
     "identifier": "minecraft:cat",
     "materials": {"default": "cat"},
@@ -5641,8 +5737,8 @@
             ]
           }
         ],
-        "texturewidth": 32,
-        "textureheight": 32
+        "texturewidth": 16,
+        "textureheight": 16
       }
     },
     "animations": {
@@ -8502,6 +8598,98 @@
       }
     },
     "render_controllers": ["controller.render.zombie_nautilus"]
+  },
+  "mannequin": {
+    "identifier": "minecraft:mannequin",
+    "materials": {"default": "entity_alphatest"},
+    "textures": {"default": "textures/entity/alex"},
+    "geometry": {
+      "default": {
+        "visible_bounds_width": 1,
+        "visible_bounds_height": 2,
+        "visible_bounds_offset": [0, 1, 0],
+        "texturewidth": 64,
+        "textureheight": 64,
+        "bones": [
+          {"name": "root", "pivot": [0, 0, 0]},
+          {
+            "name": "body",
+            "parent": "waist",
+            "pivot": [0, 24, 0],
+            "cubes": [{"origin": [-4, 12, -2], "size": [8, 12, 4], "uv": [16, 16]}]
+          },
+          {"name": "waist", "parent": "root", "pivot": [0, 12, 0]},
+          {
+            "name": "head",
+            "parent": "body",
+            "pivot": [0, 24, 0],
+            "cubes": [{"origin": [-4, 24, -4], "size": [8, 8, 8], "uv": [0, 0]}]
+          },
+          {
+            "name": "hat",
+            "parent": "head",
+            "pivot": [0, 24, 0],
+            "cubes": [{"origin": [-4, 24, -4], "size": [8, 8, 8], "uv": [32, 0], "inflate": 0.5}]
+          },
+          {
+            "name": "leftArm",
+            "parent": "body",
+            "pivot": [5, 21.5, 0],
+            "cubes": [{"origin": [4, 11.5, -2], "size": [3, 12, 4], "uv": [32, 48]}]
+          },
+          {
+            "name": "leftSleeve",
+            "parent": "leftArm",
+            "pivot": [5, 21.5, 0],
+            "cubes": [{"origin": [4, 11.5, -2], "size": [3, 12, 4], "uv": [48, 48], "inflate": 0.25}]
+          },
+          {"name": "leftItem", "pivot": [6, 15, 1], "parent": "leftArm"},
+          {
+            "name": "rightArm",
+            "parent": "body",
+            "pivot": [-5, 21.5, 0],
+            "cubes": [{"origin": [-7, 11.5, -2], "size": [3, 12, 4], "uv": [40, 16]}]
+          },
+          {
+            "name": "rightSleeve",
+            "parent": "rightArm",
+            "pivot": [-5, 21.5, 0],
+            "cubes": [{"origin": [-7, 11.5, -2], "size": [3, 12, 4], "uv": [40, 32], "inflate": 0.25}]
+          },
+          {"name": "rightItem", "pivot": [-6, 15, 1], "parent": "rightArm"},
+          {
+            "name": "leftLeg",
+            "parent": "root",
+            "pivot": [1.9, 12, 0],
+            "cubes": [{"origin": [-0.1, 0, -2], "size": [4, 12, 4], "uv": [16, 48]}]
+          },
+          {
+            "name": "leftPants",
+            "parent": "leftLeg",
+            "pivot": [1.9, 12, 0],
+            "cubes": [{"origin": [-0.1, 0, -2], "size": [4, 12, 4], "uv": [0, 48], "inflate": 0.25}]
+          },
+          {
+            "name": "rightLeg",
+            "parent": "root",
+            "pivot": [-1.9, 12, 0],
+            "cubes": [{"origin": [-3.9, 0, -2], "size": [4, 12, 4], "uv": [0, 16]}]
+          },
+          {
+            "name": "rightPants",
+            "parent": "rightLeg",
+            "pivot": [-1.9, 12, 0],
+            "cubes": [{"origin": [-3.9, 0, -2], "size": [4, 12, 4], "uv": [0, 32], "inflate": 0.25}]
+          },
+          {
+            "name": "jacket",
+            "parent": "body",
+            "pivot": [0, 24, 0],
+            "cubes": [{"origin": [-4, 12, -2], "size": [8, 12, 4], "uv": [16, 32], "inflate": 0.25}]
+          }
+        ]
+      }
+    }
   },
   "magma_cube": {
     "identifier": "minecraft:magma_cube",
@@ -17878,7 +18066,7 @@
     "materials": {"default": "sulfur_cube", "inner": "sulfur_cube_inner"},
     "textures": {
       "default": "textures/entity/sulfur_cube/sulfur_cube_inner",
-      "armor": "textures/entity/sulfur_cube/sulfur_cube_inner"
+      "armor": "textures/entity/sulfur_cube/sulfur_cube_outer"
     },
     "geometry": {
       "default": {

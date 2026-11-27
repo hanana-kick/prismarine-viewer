@@ -76,9 +76,13 @@ setInterval(() => {
     const chunk = world.getColumn(x, z)
     if (chunk && chunk.sections[(y - (chunk.minY ?? 0)) / 16]) {
       delete dirtySections[key]
-      const geometry = getSectionGeometry(x, y, z, world, blocksStates)
+      const blockEntities = []
+      const geometry = getSectionGeometry(x, y, z, world, blocksStates, (block, pos) => {
+        const descriptor = world.getBlockEntityDescriptor(block, pos)
+        if (descriptor) blockEntities.push(descriptor)
+      })
       const transferable = [geometry.positions.buffer, geometry.normals.buffer, geometry.colors.buffer, geometry.uvs.buffer, geometry.animations.buffer]
-      postMessage({ type: 'geometry', key, geometry }, transferable)
+      postMessage({ type: 'geometry', key, geometry, blockEntities }, transferable)
     }
     postMessage({ type: 'sectionFinished', key })
   }

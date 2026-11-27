@@ -71,11 +71,17 @@ const elemFaces = {
   }
 }
 
-function getLiquidRenderHeight (world, block, type) {
-  if (!block || block.type !== type) return 1 / 9
+function sameLiquid (block, type, water) {
+  if (!block) return false
+  if (water) return block.name === 'water' || block.name === 'bubble_column'
+  return block.type === type
+}
+
+function getLiquidRenderHeight (world, block, type, water) {
+  if (!sameLiquid(block, type, water)) return 1 / 9
   if (block.metadata === 0) { // source block
     const blockAbove = world.getBlock(block.position.offset(0, 1, 0))
-    if (blockAbove && blockAbove.type === type) return 1
+    if (sameLiquid(blockAbove, type, water)) return 1
     return 8 / 9
   }
   return ((block.metadata >= 8 ? 8 : 7 - block.metadata) + 1) / 9
@@ -85,7 +91,7 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
   const heights = []
   for (let z = -1; z <= 1; z++) {
     for (let x = -1; x <= 1; x++) {
-      heights.push(getLiquidRenderHeight(world, world.getBlock(cursor.offset(x, 0, z)), type))
+      heights.push(getLiquidRenderHeight(world, world.getBlock(cursor.offset(x, 0, z)), type, water))
     }
   }
   const cornerHeights = [
@@ -101,7 +107,7 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
 
     const neighbor = world.getBlock(cursor.offset(...dir))
     if (!neighbor) continue
-    if (neighbor.type === type) continue
+    if (sameLiquid(neighbor, type, water)) continue
     if ((neighbor.isCube && !isUp) || neighbor.material === 'plant' || neighbor.getProperties().waterlogged) continue
     if (neighbor.position.y < (world.minY ?? 0)) continue
 
@@ -319,8 +325,6 @@ function renderElement (world, cursor, element, doAO, attr, globalMatrix, global
         const side2Block = isAoOccluder(side2) ? 1 : 0
         const cornerBlock = isAoOccluder(corner) ? 1 : 0
 
-        // TODO: correctly interpolate ao light based on pos (evaluate once for each corner of the block)
-
         const ao = (side1Block && side2Block) ? 0 : (3 - (side1Block + side2Block + cornerBlock))
         light = (ao + 1) / 4
         aos.push(ao)
@@ -343,7 +347,7 @@ function renderElement (world, cursor, element, doAO, attr, globalMatrix, global
   }
 }
 
-function getSectionGeometry (sx, sy, sz, world, blocksStates) {
+function getSectionGeometry (sx, sy, sz, world, blocksStates, onBlock) {
   const attr = {
     sx: sx + 8,
     sy: sy + 8,
@@ -366,6 +370,7 @@ function getSectionGeometry (sx, sy, sz, world, blocksStates) {
     for (cursor.z = sz; cursor.z < sz + 16; cursor.z++) {
       for (cursor.x = sx; cursor.x < sx + 16; cursor.x++) {
         const block = world.getBlock(cursor)
+        if (onBlock) onBlock(block, cursor)
         const biome = block.biome.name
         if (block.variant === undefined) {
           block.variant = getModelVariants(block, blocksStates)
@@ -374,7 +379,7 @@ function getSectionGeometry (sx, sy, sz, world, blocksStates) {
         for (const variant of block.variant) {
           if (!variant || !variant.model) continue
 
-          if (block.name === 'water') {
+          if (block.name === 'water' || block.name === 'bubble_column') {
             renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, true, attr)
           } else if (block.name === 'lava') {
             renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, false, attr)

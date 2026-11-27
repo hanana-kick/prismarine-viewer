@@ -5,47 +5,20 @@ const THREE = require('three')
 
 const entities = require('./entities.json')
 const entityTextures26 = require('./texture-map-26.3.json')
+const { createSpecialEntity } = require('./special')
 
-// Geometry for these newer Java Edition mobs is not included in the legacy
-// Bedrock geometry set. Use a related rig rather than a magenta debug cube;
-// the 26.3 texture is resolved separately. Dedicated rigs are future work.
-const compatibleEntityRigs = {
-  mannequin: 'armor_stand'
-}
+const compatibleEntityRigs = {}
 
 // 26.3 registers separate boat entities for every wood, while the legacy
-// geometry bundle provides one reusable boat rig.
+// geometry bundle provides reusable rigs for boats and minecarts.
 function selectRig (type) {
-  if (/_chest_boat$/.test(type) || /_boat$/.test(type) ||
-      type === 'bamboo_raft' || type === 'bamboo_chest_raft') return 'boat'
+  if (/_chest_boat$/.test(type) || /_boat$/.test(type)) return 'boat'
   const additions = {
     furnace_minecart: 'minecart',
     spawner_minecart: 'minecart',
     spectral_arrow: 'arrow'
   }
   return compatibleEntityRigs[type] || additions[type] || type
-}
-
-// These modern entities do not have compatible Bedrock JSON rigs. Render a
-// deliberately simple, correctly sized form instead of a magenta failure cube.
-const simpleEntities = {
-  cushion: { shape: 'box', width: 1, height: 0.25, texture: 'entity/cushion/red_cushion' },
-  end_crystal: { shape: 'octahedron', width: 1.4, height: 1.5, texture: 'entity/end_crystal/end_crystal' },
-  falling_block: { shape: 'box', width: 0.98, height: 0.98, texture: 'blocks/stone' },
-  tnt: { shape: 'box', width: 0.98, height: 0.98, texture: 'blocks/tnt_side' },
-  item_frame: { shape: 'box', width: 0.5, height: 0.5, depth: 0.0625, texture: 'blocks/oak_planks' },
-  glow_item_frame: { shape: 'box', width: 0.5, height: 0.5, depth: 0.0625, texture: 'blocks/oak_planks' },
-  painting: { shape: 'box', width: 0.5, height: 0.5, depth: 0.0625, texture: 'blocks/oak_planks' },
-  block_display: { shape: 'box', width: 1, height: 1, texture: 'blocks/stone' },
-  ominous_item_spawner: { shape: 'sphere', width: 0.25, height: 0.25 },
-  breeze_wind_charge: { shape: 'sphere', width: 0.3125, height: 0.3125 },
-  wind_charge: { shape: 'sphere', width: 0.3125, height: 0.3125 },
-  firework_rocket: { shape: 'sphere', width: 0.25, height: 0.25 },
-  splash_potion: { shape: 'sphere', width: 0.25, height: 0.25 },
-  lingering_potion: { shape: 'sphere', width: 0.25, height: 0.25 },
-  leash_knot: { shape: 'sphere', width: 0.375, height: 0.5 },
-  lightning_bolt: { shape: 'box', width: 0.35, height: 6 },
-  area_effect_cloud: { shape: 'sphere', width: 1.5, height: 1.5 }
 }
 
 // Some 26.3 textures keep the legacy rig layout in a sub-rectangle of a larger atlas.
@@ -57,39 +30,8 @@ const textureUvOffsets = {
 // Rig parts for alternate states of the same mob; the ordinary entity only needs `default`.
 const alternateStateParts = new Set(['charged', 'sheared'])
 
-function makeSimpleEntity (type, spec) {
-  const width = spec.width
-  const height = spec.height
-  const depth = spec.depth || width
-  let geometry
-  if (spec.shape === 'octahedron') {
-    geometry = new THREE.OctahedronGeometry(width / 2)
-  } else if (spec.shape === 'sphere') {
-    geometry = new THREE.SphereGeometry(width / 2, 12, 8)
-  } else {
-    geometry = new THREE.BoxGeometry(width, height, depth)
-  }
-  const material = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: false })
-  const mesh = new THREE.Mesh(geometry, material)
-  mesh.position.y = height / 2
-  mesh.userData.approximate26 = type
-  if (spec.texture) {
-    mesh.onBeforeRender = () => {
-      mesh.onBeforeRender = () => {}
-      loadTexture('textures/26.3/' + spec.texture + '.png', texture => {
-        applyTexture(material, texture)
-      })
-    }
-  }
-  const result = new THREE.Object3D()
-  result.add(mesh)
-  return result
-}
-
-// These are protocol helpers or particle/display metadata that have no
-// meaningful geometry without a dedicated renderer. An invisible entity is
-// preferable to pretending a 6x6 particle cloud is a magenta solid cube.
-// Vanilla renderers apply extra scale factors on top of the baked 1/16 model scale:
+// Vanilla renderers apply extra scale factors on top of the baked 1/16 model scale.
+// Display and particle entities are handled by special.js before this rig path.
 // ghast/happy_ghast use MeshTransformer.scaling(4.5F)/(4.0F) in their layers; WitherBossRenderer scales 2.0F;
 // ElderGuardian uses ELDER_GUARDIAN_SCALE (2.35F). Without these the models are the wrong size.
 const entityScales = {
@@ -104,10 +46,9 @@ const entityScales = {
   shulker_bullet: 0.5
 }
 
-const nonMeshEntities = new Set([
-  'interaction', 'marker',
-  'text_display', 'item_display'
-])
+// Protocol helpers with no vanilla geometry. Display entities are built from
+// their metadata by special.js and are not part of this set.
+const nonMeshEntities = new Set(['interaction', 'marker'])
 
 function textureFor (version, type, variant, source) {
   if (version === '26.3') {
@@ -443,13 +384,14 @@ function getMesh (texture, jsonModel, override) {
 }
 
 class Entity {
-  constructor (version, type, scene, textures = {}) {
-    if (nonMeshEntities.has(type)) {
-      this.mesh = new THREE.Object3D()
+  constructor (version, type, scene, textures = {}, data = {}) {
+    const special = createSpecialEntity(type, version, { ...data, textures })
+    if (special) {
+      this.mesh = special
       return
     }
-    if (version === '26.3' && simpleEntities[type]) {
-      this.mesh = makeSimpleEntity(type, simpleEntities[type])
+    if (nonMeshEntities.has(type)) {
+      this.mesh = new THREE.Object3D()
       return
     }
     const e = entities[selectRig(type)]
@@ -480,6 +422,5 @@ module.exports.textureFor = textureFor
 module.exports.compatibleEntityRigs = compatibleEntityRigs
 module.exports.selectRig = selectRig
 module.exports.nonMeshEntities = nonMeshEntities
-module.exports.simpleEntities = simpleEntities
 module.exports.uvScaleForImage = uvScaleForImage
 module.exports.textureUvOffsets = textureUvOffsets

@@ -1,3 +1,9 @@
+### Unreleased
+* Render display, frame, painting, projectile and particle entities from their metadata and real block/item models.
+* Add dedicated bamboo raft, chest raft and mannequin rigs, missing default mob textures and the sulfur-cube outer layer.
+* Render chests, shulker boxes, heads, banners, statues, decorated pots, conduits, portals and moving pistons through block-entity models.
+* Render bubble columns as water and audit every 26.3 block and entity in the regression checks.
+
 ### 1.33.0-mc26.3.6
 * Do not render the sheared sheep overlay on ordinary sheep.
 

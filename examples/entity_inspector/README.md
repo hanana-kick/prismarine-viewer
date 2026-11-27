@@ -75,10 +75,10 @@ Option keys: `parts`, `texture`, `wireframe`, `hitbox`, `meshBox`, `bones`, `gri
 | `mesh floats N blocks above the floor` | grounded mob authored above its feet, e.g. the boat float |
 | `mesh floor at y=… (model is not authored on the ground)` | fliers, swimmers and projectiles, for which a floor offset is correct |
 | `draws W×H, hitbox is w×h` | drawn size and hitbox differ by more than 0.35 blocks |
-| `simple <shape> placeholder, not a real model` | drawn by `simpleEntities`, not by a rig |
 
-`interaction`, `marker`, `text_display` and `item_display` deliberately draw nothing:
-their content is entity metadata, and the world view forwards none of it.
+`interaction` and `marker` deliberately draw nothing, matching vanilla. Display,
+frame, projectile and particle entities use their serialized metadata; the inspector
+uses a representative default when no world metadata is supplied.
 
 ## Converting a vanilla model into `entities.json`
 

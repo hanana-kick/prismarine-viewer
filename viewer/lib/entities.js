@@ -3,6 +3,7 @@ const TWEEN = require('@tweenjs/tween.js')
 
 const Entity = require('./entity/Entity')
 const { getItemMesh, animateItem } = require('./entity/Item')
+const { createSpecialEntity, specialEntityTypes } = require('./entity/special')
 const { dispose3 } = require('./dispose')
 
 const invisibleTypes = Entity.nonMeshEntities
@@ -16,6 +17,16 @@ function getEntityMesh (entity, scene, version) {
   const entityName = typeof entity.name === 'string'
     ? entity.name.replace(/^minecraft:/, '')
     : entity.name
+  if (specialEntityTypes.has(entityName)) {
+    try {
+      return createSpecialEntity(entityName, version, entity)
+    } catch (err) {
+      console.warn('[prismarine-viewer] Could not build special entity ' + entityName, err)
+      const unresolved = new THREE.Object3D()
+      unresolved.userData.unresolvedEntity = entityName
+      return unresolved
+    }
+  }
   if (entity.itemName) return getItemMesh(entity.itemName, version, () => missingModel({ ...entity, name: entityName }))
   if (entityName === 'item' || invisibleTypes.has(entityName)) return null
   if (entityName) {
@@ -24,7 +35,7 @@ function getEntityMesh (entity, scene, version) {
       if (entity.skin) textures.default = entity.skin
       if (entity.cape) textures.cape = entity.cape
       const model = entityName === 'player' && entity.skinModel === 'slim' ? 'player_slim' : entityName
-      const e = new Entity(version, model, scene, textures)
+      const e = new Entity(version, model, scene, textures, entity)
       if (!e.mesh.children.length) {
         throw new Error('Empty geometry for ' + entityName)
       }
@@ -123,12 +134,27 @@ function animateWalk (mesh, ticks) {
   }
 }
 
+const contentFields = [
+  'itemName', 'blockState', 'blockName', 'blockProperties', 'text', 'textComponent',
+  'translation', 'scale', 'leftRotation', 'rightRotation', 'billboard', 'brightness',
+  'background', 'alignment', 'lineWidth', 'textOpacity', 'seeThrough', 'shadow',
+  'painting', 'paintingName', 'paintingWidth', 'paintingHeight', 'frameRotation',
+  'facing', 'color', 'radius', 'particleColor', 'itemDisplayContext', 'showBottom',
+  'skin', 'skinModel', 'cape'
+]
+
+function contentSignature (entity) {
+  return JSON.stringify(contentFields.map(field => entity[field]))
+}
+
 class Entities {
   constructor (scene) {
     this.scene = scene
     this.entities = {}
-    // What the spawn said about each dropped item, since later partial updates carry only the id
+    // Partial protocol updates carry only an id. Retain the spawn and all
+    // content metadata so every renderer can be rebuilt without entity.name.
     this.items = {}
+    this.entityData = {}
     this.lastAnimate = performance.now()
   }
 
@@ -155,16 +181,33 @@ class Entities {
     }
     this.entities = {}
     this.items = {}
+    this.entityData = {}
   }
 
   update (entity) {
-    if (entity.name === 'item') this.items[entity.id] = { name: entity.name, width: entity.width, height: entity.height }
-    if (this.items[entity.id]) entity = { ...this.items[entity.id], ...entity }
-    if (entity.delete) delete this.items[entity.id]
+    const previous = this.entityData[entity.id] || this.items[entity.id] || {}
+    entity = { ...previous, ...entity }
 
-    // A dropped item's stack arrives after its spawn and can change; its mesh is that stack's model.
+    if (entity.delete) {
+      const known = this.entities[entity.id]
+      if (known) {
+        this.scene.remove(known)
+        dispose3(known)
+      }
+      delete this.entities[entity.id]
+      delete this.items[entity.id]
+      delete this.entityData[entity.id]
+      return
+    }
+
+    this.entityData[entity.id] = entity
+    if (entity.name === 'item') this.items[entity.id] = { name: entity.name, width: entity.width, height: entity.height }
+
+    // A changed stack, block state, text, frame or display transform needs a
+    // new content mesh; position and animation-only updates reuse the old one.
+    const signature = contentSignature(entity)
     const known = this.entities[entity.id]
-    if (known && entity.itemName !== undefined && known.itemName !== entity.itemName) {
+    if (known && known.contentSignature !== signature) {
       this.scene.remove(known)
       dispose3(known)
       delete this.entities[entity.id]
@@ -174,18 +217,13 @@ class Entities {
       const mesh = getEntityMesh(entity, this.scene, this.version)
       if (!mesh) return
       mesh.itemName = entity.itemName
+      mesh.contentSignature = signature
       this.entities[entity.id] = mesh
       this.scene.add(mesh)
-      if (entity.pos) mesh.position.set(entity.pos.x, entity.pos.y, entity.pos.z)
+      mesh.position.set(entity.pos.x, entity.pos.y, entity.pos.z)
     }
 
     const e = this.entities[entity.id]
-
-    if (entity.delete) {
-      this.scene.remove(e)
-      dispose3(e)
-      delete this.entities[entity.id]
-    }
 
     if (entity.pos) {
       new TWEEN.Tween(e.position).to({ x: entity.pos.x, y: entity.pos.y, z: entity.pos.z }, 50).start()
@@ -194,7 +232,7 @@ class Entities {
       if (entity.riding !== undefined) e.walk.riding = entity.riding
       if (entity.hurt) e.walk.speed = 1.5
     }
-    if (entity.yaw) {
+    if (entity.yaw !== undefined) {
       const da = (entity.yaw - e.rotation.y) % (Math.PI * 2)
       const dy = 2 * da % (Math.PI * 2) - da
       new TWEEN.Tween(e.rotation).to({ y: e.rotation.y + dy }, 50).start()

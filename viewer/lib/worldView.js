@@ -1,6 +1,13 @@
 const { spiral, ViewRect, chunkPos } = require('./simpleUtils')
 const { Vec3 } = require('vec3')
 const EventEmitter = require('events')
+// Numeric state ids need prismarine-block only on the Node/mineflayer side.
+// Keep it out of the browser bundle; the registry fallback still preserves the name.
+/* eslint-disable no-eval */
+const prismarineBlock = typeof window === 'undefined' ? eval('require')('prismarine-block') : null
+/* eslint-enable no-eval */
+
+const blockClasses = {}
 
 // Skin and cape texture URLs of a player entity (textures.minecraft.net on
 // online-mode servers); nothing for other entities or players without skin data
@@ -20,17 +27,204 @@ function defaultSkinModel (uuid) {
   return odd ? 'slim' : undefined
 }
 
+function metadataValues (entity) {
+  if (!entity.metadata) return []
+  const values = Array.isArray(entity.metadata) ? entity.metadata : Object.values(entity.metadata)
+  return values.map(value => value && typeof value === 'object' && 'value' in value && 'key' in value ? value.value : value)
+}
+
+function itemSlot (registry, slot) {
+  if (!slot || typeof slot !== 'object') return undefined
+  if (slot.present === false) return undefined
+  if (slot.itemCount === 0 || slot.count === 0) return { itemName: null }
+  if (typeof slot.name === 'string') return { itemName: slot.name.replace(/^minecraft:/, '') }
+  const id = slot.itemId ?? slot.blockId
+  if (id === undefined || id < 0) return undefined
+  const name = registry.items[id]?.name || registry.itemsByName?.[id]?.name
+  return name ? { itemName: name } : undefined
+}
+
+function firstItemSlot (registry, entity) {
+  const keys = registry.entitiesByName?.[entity.name]?.metadataKeys
+  let slots = metadataValues(entity)
+  if (keys) {
+    const index = keys.indexOf('item')
+    if (index >= 0 && entity.metadata[index] !== undefined) slots = [entity.metadata[index]]
+  }
+  for (const slot of slots) {
+    const item = itemSlot(registry, slot)
+    if (item) return item
+  }
+  return undefined
+}
+
 // A dropped item's stack lives in the entity's metadata, keyed by the raw metadata index.
 function droppedItemName (registry, entity) {
-  if (entity.name !== 'item' || !entity.metadata) return undefined
-  const keys = registry.entitiesByName?.item?.metadataKeys
-  const slots = keys ? [entity.metadata[keys.indexOf('item')]] : Object.values(entity.metadata)
-  for (const slot of slots) {
-    if (!slot || typeof slot !== 'object') continue
-    if (slot.present === false || slot.itemCount === 0) continue
-    const id = slot.itemId ?? slot.blockId
-    if (id === undefined || id < 0) continue
-    return registry.items[id]?.name
+  if (entity.name !== 'item') return undefined
+  return firstItemSlot(registry, entity)?.itemName || undefined
+}
+
+function metadataAt (entity, names, index) {
+  if (!entity.metadata) return undefined
+  for (const name of names) {
+    if (entity.metadata[name] !== undefined) return entity.metadata[name]
+  }
+  return entity.metadata[index]
+}
+
+function safeVector (value, quaternion = false) {
+  if (Array.isArray(value)) return value.slice(0, quaternion ? 4 : 3).map(Number)
+  if (!value || typeof value !== 'object') return undefined
+  const result = { x: Number(value.x) || 0, y: Number(value.y) || 0, z: Number(value.z) || 0 }
+  if (quaternion) result.w = Number(value.w ?? 1)
+  return result
+}
+
+function safeComponent (value, depth = 0) {
+  if (value === null || value === undefined) return value
+  if (typeof value === 'string' || typeof value === 'number') return value
+  if (depth > 8) return undefined
+  if (Array.isArray(value)) return value.map(entry => safeComponent(entry, depth + 1)).filter(entry => entry !== undefined)
+  if (typeof value !== 'object') return String(value)
+  const result = {}
+  for (const key of ['text', 'translate', 'extra', 'color', 'bold', 'italic', 'underlined', 'strikethrough', 'obfuscated', 'insertion']) {
+    if (value[key] === undefined) continue
+    result[key] = key === 'text' || key === 'translate' || key === 'extra'
+      ? safeComponent(value[key], depth + 1)
+      : value[key]
+  }
+  if (!Object.keys(result).length && value.value !== undefined) return safeComponent(value.value, depth + 1)
+  return result
+}
+
+function blockState (bot, value) {
+  if (typeof value === 'string') {
+    const match = value.match(/^(?:minecraft:)?([^[]+)(?:\[([^]]+)\])?$/)
+    if (!match || !bot.registry.blocksByName[match[1]]) return undefined
+    const properties = {}
+    if (match[2]) {
+      for (const part of match[2].split(',')) {
+        const [key, property] = part.split('=')
+        if (key && property !== undefined) properties[key.trim()] = property.trim()
+      }
+    }
+    return { name: match[1], properties }
+  }
+  if (value && typeof value === 'object') {
+    if (value.Name || value.name) return { name: String(value.Name || value.name).replace(/^minecraft:/, ''), properties: value.Properties || value.properties || {} }
+    value = value.stateId ?? value.blockState ?? value.value
+  }
+  if (!Number.isInteger(value) || value < 0 || !bot.registry.blocksByStateId?.[value]) return undefined
+  try {
+    if (!blockClasses[bot.version]) blockClasses[bot.version] = prismarineBlock(bot.version)
+    const block = blockClasses[bot.version].fromStateId(value, 0)
+    return { name: block.name, properties: block.getProperties() }
+  } catch {
+    return { name: bot.registry.blocksByStateId[value].name, properties: {} }
+  }
+}
+
+function displayData (entity) {
+  const result = {}
+  const vectors = [
+    ['translation', ['translation'], 11, false], ['scale', ['scale'], 12, false],
+    ['leftRotation', ['left_rotation', 'leftRotation'], 13, true],
+    ['rightRotation', ['right_rotation', 'rightRotation'], 14, true]
+  ]
+  for (const [field, names, index, quaternion] of vectors) {
+    const value = safeVector(metadataAt(entity, names, index), quaternion)
+    if (value) result[field] = value
+  }
+  const billboard = metadataAt(entity, ['billboard', 'billboard_constraints'], 15)
+  if (typeof billboard === 'number' || typeof billboard === 'string') result.billboard = billboard
+  const context = metadataAt(entity, ['item_display_context', 'displayContext'], 24)
+  if (entity.name === 'item_display' && (typeof context === 'number' || typeof context === 'string')) result.itemDisplayContext = context
+  return result
+}
+
+// Extract only fields used by the special renderers. In 26.3 metadataKeys is
+// absent, so the vanilla raw slot positions are used alongside conservative
+// shape checks; the raw metadata object itself never crosses the worker.
+function specialEntityData (bot, entity) {
+  const result = {}
+  if (entity.name === 'falling_block' || entity.name === 'block_display') {
+    const first = metadataAt(entity, ['block_state', 'blockState'], entity.name === 'block_display' ? 23 : 8)
+    let state = blockState(bot, first)
+    if (!state) {
+      for (const value of metadataValues(entity)) {
+        if (!value || typeof value !== 'object') continue
+        if (value.Name === undefined && value.name === undefined && value.stateId === undefined && value.blockState === undefined) continue
+        state = blockState(bot, value)
+        if (state) break
+      }
+    }
+    if (state) result.blockState = state
+  }
+
+  if (['item', 'item_frame', 'glow_item_frame', 'item_display', 'splash_potion', 'lingering_potion', 'ominous_item_spawner'].includes(entity.name)) {
+    const item = firstItemSlot(bot.registry, entity)
+    if (item) result.itemName = item.itemName
+  }
+  if (entity.name === 'item_frame' || entity.name === 'glow_item_frame') {
+    const rotation = metadataAt(entity, ['rotation', 'frameRotation'], 9)
+    if (Number.isInteger(rotation) && rotation >= 0 && rotation <= 7) result.frameRotation = rotation
+    if (entity.facing !== undefined || entity.direction !== undefined) result.facing = entity.facing ?? entity.direction
+  }
+  if (entity.name === 'block_display' || entity.name === 'item_display' || entity.name === 'text_display') Object.assign(result, displayData(entity))
+
+  if (entity.name === 'text_display') {
+    const text = safeComponent(metadataAt(entity, ['text', 'textComponent'], 23))
+    if (text !== undefined) result.text = text
+    const lineWidth = metadataAt(entity, ['line_width', 'lineWidth'], 24)
+    if (Number.isFinite(lineWidth) && lineWidth > 0) result.lineWidth = lineWidth
+    const background = metadataAt(entity, ['background_color', 'background'], 25)
+    if (Number.isFinite(background) || typeof background === 'string') result.background = background
+    const opacity = metadataAt(entity, ['text_opacity', 'textOpacity'], 26)
+    if (Number.isFinite(opacity)) result.textOpacity = opacity
+    const flags = metadataAt(entity, ['style_flags', 'styleFlags'], 27)
+    if (Number.isInteger(flags)) {
+      result.shadow = !!(flags & 1)
+      result.seeThrough = !!(flags & 2)
+      if (!(flags & 4) && background === undefined) result.background = 0x40000000
+      result.alignment = ['center', 'left', 'right'][(flags >> 3) & 3] || 'center'
+    }
+  }
+
+  if (entity.name === 'painting') {
+    const variant = metadataAt(entity, ['variant', 'painting_variant'], 8)
+    const inline = variant?.variantData || variant?.data || variant
+    const name = inline?.assetId || inline?.asset_id || inline?.name
+    if (typeof name === 'string') result.paintingName = name.replace(/^minecraft:/, '').replace(/^painting\//, '')
+    if (Number.isFinite(inline?.width)) result.paintingWidth = inline.width
+    if (Number.isFinite(inline?.height)) result.paintingHeight = inline.height
+    if (entity.facing !== undefined || entity.direction !== undefined) result.facing = entity.facing ?? entity.direction
+  }
+  if (entity.name === 'cushion') {
+    const color = metadataAt(entity, ['color', 'dye_color'], 8)
+    if (typeof color === 'string' || (Number.isInteger(color) && color >= 0 && color < 16)) result.color = color
+  }
+  if (entity.name === 'area_effect_cloud') {
+    const radius = metadataAt(entity, ['radius'], 8)
+    const color = metadataAt(entity, ['color', 'particleColor'], 9)
+    if (Number.isFinite(radius) && radius > 0) result.radius = radius
+    if (Number.isFinite(color)) result.particleColor = color
+  }
+  if (entity.name === 'end_crystal' && entity.showBottom !== undefined) result.showBottom = !!entity.showBottom
+  return result
+}
+
+function spawnData (bot, entity) {
+  return {
+    id: entity.id,
+    name: entity.name,
+    pos: entity.position,
+    width: entity.width,
+    height: entity.height,
+    username: entity.username,
+    riding: !!entity.vehicle,
+    itemName: droppedItemName(bot.registry, entity),
+    ...specialEntityData(bot, entity),
+    ...playerSkin(bot, entity)
   }
 }
 
@@ -65,11 +259,13 @@ class WorldView extends EventEmitter {
       // 'move': botPosition,
       entitySpawn: function (e) {
         if (e === bot.entity) return
-        worldView.emitter.emit('entity', { id: e.id, name: e.name, pos: e.position, width: e.width, height: e.height, username: e.username, riding: !!e.vehicle, itemName: droppedItemName(bot.registry, e), ...playerSkin(bot, e) })
+        worldView.emitter.emit('entity', spawnData(bot, e))
       },
       entityUpdate: function (e) {
+        const data = specialEntityData(bot, e)
         const itemName = droppedItemName(bot.registry, e)
-        if (itemName !== undefined) worldView.emitter.emit('entity', { id: e.id, pos: e.position, itemName })
+        if (itemName !== undefined) data.itemName = itemName
+        if (Object.keys(data).length) worldView.emitter.emit('entity', { id: e.id, pos: e.position, ...data })
       },
       entityMoved: function (e) {
         worldView.emitter.emit('entity', { id: e.id, pos: e.position, pitch: e.pitch, yaw: e.yaw })
@@ -111,7 +307,7 @@ class WorldView extends EventEmitter {
     for (const id in bot.entities) {
       const e = bot.entities[id]
       if (e && e !== bot.entity) {
-        this.emitter.emit('entity', { id: e.id, name: e.name, pos: e.position, width: e.width, height: e.height, username: e.username, riding: !!e.vehicle, itemName: droppedItemName(bot.registry, e), ...playerSkin(bot, e) })
+        this.emitter.emit('entity', spawnData(bot, e))
       }
     }
   }

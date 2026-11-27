@@ -129,6 +129,7 @@ Options:
 * `port` the port for the webserver, default: `3000`
 
 Players are rendered with their skin, wide or slim, and cape when the server sends skin data (online-mode servers).
+Display entities, item frames, paintings, projectiles and particle entities use their serialized metadata; falling blocks and block items use the real block models. Chests, shulker boxes, heads, banners, statues, decorated pots, conduits, portals and moving pistons are rendered by block-entity model renderers.
 
 [example](https://github.com/PrismarineJS/prismarine-viewer/blob/master/examples/bot.js)
 

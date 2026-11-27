@@ -17,10 +17,12 @@ const aliases = {
   'entity/chicken': 'entity/chicken/chicken_temperate',
   'entity/sheep/sheep_fur': 'entity/sheep/sheep_wool',
   'entity/guardian': 'entity/guardian/guardian',
-  'entity/guardian_elder': 'entity/guardian/elder_guardian',
+  'entity/guardian_elder': 'entity/guardian/guardian_elder',
+  'entity/fireworks': 'items/firework_rocket',
   'entity/iron_golem': 'entity/iron_golem/iron_golem',
   'entity/witch': 'entity/witch/witch',
   'entity/bat': 'entity/bat/bat',
+  'entity/skeleton/bogged_mushrooms': 'entity/skeleton/bogged_overlay',
   'entity/blaze': 'entity/blaze/blaze',
   'entity/endermite': 'entity/endermite/endermite',
   'entity/experience_orb': 'entity/experience/experience_orb',
@@ -102,6 +104,16 @@ function resolveTexture (source, available) {
 }
 
 function findDefaultTexture (name, available) {
+  const explicit = {
+    elder_guardian: 'entity/guardian/guardian_elder',
+    bogged: 'entity/skeleton/bogged',
+    pufferfish: 'entity/fish/pufferfish',
+    stray: 'entity/skeleton/stray',
+    tropical_fish: 'entity/fish/tropical_a',
+    zombie_nautilus: 'entity/nautilus/zombie_nautilus',
+    mannequin: 'entity/player/slim/alex'
+  }[name]
+  if (explicit && available.has(explicit)) return explicit
   if (name === 'cat' && available.has('entity/cat/cat_white')) {
     return 'entity/cat/cat_white'
   }
@@ -192,7 +204,9 @@ function generateEntityTextureMap (assetsDirectory) {
   }
   if (available.has('entity/boat/bamboo')) {
     defaults.bamboo_raft = 'textures/26.3/entity/boat/bamboo.png'
-    defaults.bamboo_chest_raft = 'textures/26.3/entity/boat/bamboo.png'
+  }
+  if (available.has('entity/chest_boat/bamboo')) {
+    defaults.bamboo_chest_raft = 'textures/26.3/entity/chest_boat/bamboo.png'
   }
   if (available.has('entity/illager/illusioner')) {
     defaults.illusioner = 'textures/26.3/entity/illager/illusioner.png'
